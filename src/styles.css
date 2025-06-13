@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fafafa;
+}
+
+.workflow-app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #2d3748;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.config-button {
+  background-color: #4a5568;
+}
+
+.config-button:hover {
+  background-color: #2d3748;
+}
+
+.debug-button {
+  background-color: #4a5568;
+}
+
+.debug-button:hover, .debug-button.active {
+  background-color: #007ACC;
+}
+
+.deploy-button {
+  background-color: #38a169;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deploy-button:hover {
+  background-color: #2f855a;
+}
+
+.deploy-button:disabled {
+  background-color: #68d391;
+  cursor: not-allowed;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Node Palette Sidebar */
+.node-palette {
+  width: 220px;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+}
+
+.node-palette h3 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #2d3748;
+}
+
+.node-template {
+  padding: 0.75rem;
+  color: #1a202c;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.node-template:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.node-icon {
+  font-size: 1.125rem;
+  margin-right: 0.5rem;
+}
+
+.node-label {
+  font-weight: 500;
+}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { Handle } from 'reactflow';
 
-const CustomNode = ({ id, data }) => {
-  // Use data.color or default to a Node-RED like color
+const CustomNode = ({ data }) => {
   const backgroundColor = data.color || '#E6E0F8';
   
   return (
@@ -10,17 +9,16 @@ const CustomNode = ({ id, data }) => {
       style={{
         padding: '0',
         borderRadius: '5px',
-        width: '160px',
+        width: '180px',
         fontSize: '12px',
         color: '#333',
-        textAlign: 'center',
+        textAlign: 'left',
         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
         backgroundColor: backgroundColor,
         border: '1px solid rgba(0, 0, 0, 0.15)',
         position: 'relative',
       }}
     >
-      {/* Input handle - positioned on the left side */}
       <Handle
         type="target"
         position="left"
@@ -33,25 +31,22 @@ const CustomNode = ({ id, data }) => {
         }}
       />
 
-      {/* Node header - only showing the node name and icon */}
+      {/* Simple node - just icon and label */}
       <div
         style={{
           padding: '10px',
-          borderTopLeftRadius: '4px',
-          borderTopRightRadius: '4px',
+          borderRadius: '4px',
           fontWeight: 'bold',
           fontSize: '13px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.06)',
         }}
       >
-        <span style={{ marginRight: '6px', fontSize: '16px' }}>{data.icon}</span>
+        <span style={{ marginRight: '8px', fontSize: '16px' }}>{data.icon}</span>
         {data.label}
       </div>
 
-      {/* Output handle - positioned on the right side */}
       <Handle
         type="source"
         position="right"
