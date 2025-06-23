@@ -1,0 +1,12 @@
+.headerActionButton {
+	background: none;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: #555;
+	padding: 8px;
+	border-radius: 4px;
+}
