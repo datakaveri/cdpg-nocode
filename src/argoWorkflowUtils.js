@@ -30,13 +30,18 @@ function buildCliArgs(params) {
 
 const nodeTypeToTemplate = {
   'load-dataset': 'download-data',
-  'plot-observation-plot': 'plot-observation-data',
-  'plot-condition-plot': 'plot-condition-data',
-  'abbreviate-columns': 'abbreviate-columns',
-  'plot-correlation': 'plot-correlation',
-  'plot-histograms': 'plot-histograms',
-  'plot-epi-curve': 'plot-epi-curve',
-  'generate-report': 'generate-report'
+  'correlation': 'correlation',
+  'condition': 'condition',
+  'observation': 'observation',
+  'cluster': 'cluster',
+  'frequency': 'frequency',
+  'range': 'range',
+  'std': 'std',
+  'mode': 'mode',
+  'median': 'median',
+  'mean': 'mean',
+  'abbreviate': 'abbreviate',
+  'plot': 'plot'
 };
 
 const argoWorkflowTemplate = {
@@ -73,11 +78,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "plot-observation-data",
+        name: "correlation",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "plot-observation-data"],
+          command: ["python", "/app/icmr_viz/cli.py", "correlation"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -92,11 +97,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "plot-condition-data",
+        name: "condition",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "plot-condition-data"],
+          command: ["python", "/app/icmr_viz/cli.py", "condition"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -111,11 +116,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "abbreviate-columns",
+        name: "observation",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "abbreviate-columns"],
+          command: ["python", "/app/icmr_viz/cli.py", "observation"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -130,11 +135,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "plot-correlation",
+        name: "cluster",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "plot-correlation"],
+          command: ["python", "/app/icmr_viz/cli.py", "cluster"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -149,11 +154,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "plot-histograms",
+        name: "frequency",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "plot-histograms"],
+          command: ["python", "/app/icmr_viz/cli.py", "frequency"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -168,11 +173,11 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "plot-epi-curve",
+        name: "range",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "plot-epi-curve"],
+          command: ["python", "/app/icmr_viz/cli.py", "range"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -187,11 +192,106 @@ const argoWorkflowTemplate = {
         }
       },
       {
-        name: "generate-report",
+        name: "std",
         inputs: { parameters: [] },
         container: {
           image: "suryansh72/icmr-fhir-cli:latest",
-          command: ["python", "/app/icmr_viz/cli.py", "generate-report"],
+          command: ["python", "/app/icmr_viz/cli.py", "std"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" }
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1"
+            }
+          ]
+        }
+      },
+      {
+        name: "mode",
+        inputs: { parameters: [] },
+        container: {
+          image: "suryansh72/icmr-fhir-cli:latest",
+          command: ["python", "/app/icmr_viz/cli.py", "mode"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" }
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1"
+            }
+          ]
+        }
+      },
+      {
+        name: "median",
+        inputs: { parameters: [] },
+        container: {
+          image: "suryansh72/icmr-fhir-cli:latest",
+          command: ["python", "/app/icmr_viz/cli.py", "median"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" }
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1"
+            }
+          ]
+        }
+      },
+      {
+        name: "mean",
+        inputs: { parameters: [] },
+        container: {
+          image: "suryansh72/icmr-fhir-cli:latest",
+          command: ["python", "/app/icmr_viz/cli.py", "mean"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" }
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1"
+            }
+          ]
+        }
+      },
+      {
+        name: "abbreviate",
+        inputs: { parameters: [] },
+        container: {
+          image: "suryansh72/icmr-fhir-cli:latest",
+          command: ["python", "/app/icmr_viz/cli.py", "abbreviate"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" }
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1"
+            }
+          ]
+        }
+      },
+      {
+        name: "plot",
+        inputs: { parameters: [] },
+        container: {
+          image: "suryansh72/icmr-fhir-cli:latest",
+          command: ["python", "/app/icmr_viz/cli.py", "plot"],
           args: [],
           resources: {
             limits: { memory: "2Gi", cpu: "2" },
@@ -212,6 +312,7 @@ const argoWorkflowTemplate = {
     ]
   }
 };
+
 
 function mapNodeToTask(node) {
   const templateName = nodeTypeToTemplate[node.info.type] || node.info.type;

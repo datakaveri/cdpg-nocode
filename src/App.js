@@ -32,7 +32,6 @@ const initialNodes = [
       label: "load-dataset",
       params: {
         base_url: "https://fhir.rs.adarv.in/fhir",
-        dash_url: "http://127.0.0.1:8050",
         processed_data_path: "processed_data.csv",
         patients_df_path: "patients_df.csv",
         obs_names_path: "obs_names.pkl",
@@ -49,6 +48,7 @@ const initialNodes = [
 
 const initialEdges = [];
 
+// Updated nodeTemplates array - replace the existing one in App.js
 const nodeTemplates = [
   {
     label: "load-dataset",
@@ -58,7 +58,6 @@ const nodeTemplates = [
     type: "load-dataset",
     params: {
       base_url: "https://fhir.rs.adarv.in/fhir",
-      dash_url: "http://127.0.0.1:8050",
       processed_data_path: "processed_data.csv",
       patients_df_path: "patients_df.csv",
       obs_names_path: "obs_names.pkl",
@@ -71,37 +70,123 @@ const nodeTemplates = [
     },
   },
   {
-    label: "observation-plot",
+    label: "correlation",
+    type: "custom",
+    icon: "🔗",
+    color: "#B87EE6",
+    type: "correlation",
+    params: {
+      input: "processed_data.csv",
+      obs_names_path: "obs_names.pkl",
+      cond_names_path: "cond_names.pkl"
+    }
+  },
+  {
+    label: "condition",
+    type: "custom",
+    icon: "🏥",
+    color: "#7EE6B8",
+    type: "condition",
+    params: {
+      input: "patients_df.csv"
+    }
+  },
+  {
+    label: "observation",
+    type: "custom",
+    icon: "🔍",
+    color: "#7EB8E6",
+    type: "observation",
+    params: {
+      input: "patients_df.csv"
+    }
+  },
+  {
+    label: "cluster",
+    type: "custom",
+    icon: "🎯",
+    color: "#E6B87E",
+    type: "cluster",
+    params: {
+      file: "processed_data.csv",
+      features: "",
+      clusters: "3",
+      topx: "10"
+    }
+  },
+  {
+    label: "frequency",
     type: "custom",
     icon: "📊",
-    color: "#7EB8E6",
-    type: "plot-observation-plot",
+    color: "#7EE6E6",
+    type: "frequency",
     params: {
-      input: "patients_df.csv",
-      output: "observation.png",
-      output_html: "obs.html",
-      observation_names: ""
+      file: "processed_data.csv",
+      column: "",
+      proportion: "false"
     }
   },
   {
-    label: "condition-plot",
+    label: "range",
+    type: "custom",
+    icon: "📏",
+    color: "#E67EB8",
+    type: "range",
+    params: {
+      file: "processed_data.csv",
+      column: ""
+    }
+  },
+  {
+    label: "std",
+    type: "custom",
+    icon: "📐",
+    color: "#B8E67E",
+    type: "std",
+    params: {
+      file: "processed_data.csv",
+      column: ""
+    }
+  },
+  {
+    label: "mode",
+    type: "custom",
+    icon: "🎲",
+    color: "#E6E67E",
+    type: "mode",
+    params: {
+      file: "processed_data.csv",
+      column: ""
+    }
+  },
+  {
+    label: "median",
+    type: "custom",
+    icon: "📊",
+    color: "#7E7EE6",
+    type: "median",
+    params: {
+      file: "processed_data.csv",
+      column: ""
+    }
+  },
+  {
+    label: "mean",
     type: "custom",
     icon: "📈",
-    color: "#7EE6B8",
-    type: "plot-condition-plot",
+    color: "#E67E7E",
+    type: "mean",
     params: {
-      input: "patients_df.csv",
-      output: "condition.png",
-      output_html: "condition.html",
-      condition_names: ""
+      file: "processed_data.csv",
+      column: ""
     }
   },
   {
-    label: "abbreviate-columns",
+    label: "abbreviate",
     type: "custom",
     icon: "🔠",
-    color: "#E6B87E",
-    type: "abbreviate-columns",
+    color: "#7EE67E",
+    type: "abbreviate",
     params: {
       processed_data_path: "processed_data.csv",
       obs_names_path: "obs_names.pkl",
@@ -110,65 +195,25 @@ const nodeTemplates = [
     }
   },
   {
-    label: "correlation-plot",
-    type: "custom",
-    icon: "🔗",
-    color: "#B87EE6",
-    type: "plot-correlation",
-    params: {
-      input: "processed_data.csv",
-      output: "corr.png",
-      output_html: "corr.html",
-      obs_names_path: "obs_names.pkl",
-      cond_names_path: "cond_names.pkl"
-    }
-  },
-  {
-    label: "histograms",
+    label: "plot",
     type: "custom",
     icon: "📊",
-    color: "#7EE6E6",
-    type: "plot-histograms",
+    color: "#B87E7E",
+    type: "plot",
     params: {
-      input: "processed_data.csv",
-      columns: "",
-      output_dir: "histograms",
-      output_html_dir: "histograms_html",
-      obs_names_path: "obs_names.pkl",
-      cond_names_path: "cond_names.pkl"
-    }
-  },
-  {
-    label: "epi-curve",
-    type: "custom",
-    icon: "📅",
-    color: "#E67EB8",
-    type: "plot-epi-curve",
-    params: {
-      input: "processed_data.csv",
-      date_var: "date",
-      output: "epidemic_curve.png",
-      output_html: "epidemic_curve.html",
-      minio_endpoint: "minio-service:9000",
-      minio_access_key: "minioadmin",
-      minio_secret_key: "minioadmin",
-      minio_secure: "False"
-    }
-  },
-  {
-    label: "generate-report",
-    type: "custom",
-    icon: "📄",
-    color: "#7E7EE6",
-    type: "generate-report",
-    params: {
-      report: "report.pdf",
-      abbr_data: "abbreviation_data.csv",
-      obs_plot: "observation.png",
-      cond_plot: "condition.png",
-      epi_curve: "epidemic_curve.png",
-      histogram_dir: "histograms",
-      corr_plot: "corr.png"
+      data_file: "",
+      csv_file: "",
+      plot_type: "bar",
+      operation: "",
+      title: "",
+      x_label: "",
+      y_label: "",
+      color_column: "",
+      size_column: "",
+      facet_column: "",
+      width: "800",
+      height: "600",
+      output: ""
     }
   }
 ];
