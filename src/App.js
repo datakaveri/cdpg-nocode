@@ -66,20 +66,13 @@ function App() {
 	const [showDebugConsole, setShowDebugConsole] = useState(false);
 	const [workflowStatus, setWorkflowStatus] = useState(null);
 	const [argoConfig, setArgoConfig] = useState({
-		url: env.argoToken,
-		token: env.argoUrl,
+		url: env.argoUrl,
+		token: env.argoToken,
 	});
-
-	useEffect(() => {
-		const savedConfig = localStorage.getItem("argoConfig");
-		if (savedConfig) {
-			setArgoConfig(JSON.parse(savedConfig));
-		}
-	}, []);
 
 	const saveArgoConfig = (config) => {
 		setArgoConfig(config);
-		localStorage.setItem("argoConfig", JSON.stringify(config));
+		// localStorage.setItem("argoConfig", JSON.stringify(config));
 	};
 
 	const onDrop = useCallback(
@@ -371,6 +364,8 @@ function App() {
 				// Safely extract the status and convert to string if necessary
 				const currentStatus = status?.status?.toString() || "Unknown";
 				setWorkflowStatus(currentStatus);
+
+				console.log(currentStatus);
 
 				if (
 					typeof currentStatus === "string" &&
