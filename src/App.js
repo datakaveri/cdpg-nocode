@@ -11,14 +11,22 @@ import "reactflow/dist/style.css";
 import CustomNode from "./components/CustomNode";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { IcmrArgoClient } from "./IcmrArgoClient";
-import { generateArgoWorkflow } from "./argoWorkflowUtils";
+import { IcmrArgoClient } from "./utils/IcmrArgoClient";
+import { generateArgoWorkflow } from "./utils/argoWorkflowUtils";
 import { sleep } from "./utils";
+import styles from "./styles.module.css";
 
 // Icons
 import { BsTerminal } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
-import { FaTimes, FaPlay, FaTrash } from "react-icons/fa";
+import { nodeTemplates } from "./constants/nodeTemplates";
+import { env } from "./environments/environments";
+import HeaderActionButton from "./components/HeaderActionButton";
+import SidebarMenuItem from "./components/SidebarMenuItem";
+import DebugConsole from "./components/DebugConsole";
+import ParameterSidebar from "./components/ParameterSidebar";
+import ConfigModal from "./components/ConfigModal";
+import SidebarButtons from "./components/SidebarButtons";
 
 const nodeTypes = {
 	custom: CustomNode,
@@ -48,188 +56,6 @@ const initialNodes = [
 
 const initialEdges = [];
 
-// Updated nodeTemplates array - replace the existing one in App.js
-const nodeTemplates = [
-	{
-		label: "load-dataset",
-		type: "custom",
-		icon: "📥",
-		color: "#E6897E",
-		type: "load-dataset",
-		params: {
-			base_url: "https://fhir.rs.adarv.in/fhir",
-			processed_data_path: "processed_data.csv",
-			patients_df_path: "patients_df.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
-			dataset_name: "LeptoDemo",
-		},
-	},
-	{
-		label: "correlation",
-		type: "custom",
-		icon: "🔗",
-		color: "#B87EE6",
-		type: "correlation",
-		params: {
-			input: "processed_data.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
-		},
-	},
-	{
-		label: "condition",
-		type: "custom",
-		icon: "🏥",
-		color: "#7EE6B8",
-		type: "condition",
-		params: {
-			input: "patients_df.csv",
-		},
-	},
-	{
-		label: "observation",
-		type: "custom",
-		icon: "🔍",
-		color: "#7EB8E6",
-		type: "observation",
-		params: {
-			input: "patients_df.csv",
-		},
-	},
-	{
-		label: "cluster",
-		type: "custom",
-		icon: "🎯",
-		color: "#E6B87E",
-		type: "cluster",
-		params: {
-			file: "processed_data.csv",
-			features: "",
-			clusters: "3",
-			topx: "10",
-		},
-	},
-	{
-		label: "frequency",
-		type: "custom",
-		icon: "📊",
-		color: "#7EE6E6",
-		type: "frequency",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-			proportion: "false",
-		},
-	},
-	{
-		label: "range",
-		type: "custom",
-		icon: "📏",
-		color: "#E67EB8",
-		type: "range",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-		},
-	},
-	{
-		label: "std",
-		type: "custom",
-		icon: "📐",
-		color: "#B8E67E",
-		type: "std",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-		},
-	},
-	{
-		label: "mode",
-		type: "custom",
-		icon: "🎲",
-		color: "#E6E67E",
-		type: "mode",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-		},
-	},
-	{
-		label: "median",
-		type: "custom",
-		icon: "📊",
-		color: "#7E7EE6",
-		type: "median",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-		},
-	},
-	{
-		label: "mean",
-		type: "custom",
-		icon: "📈",
-		color: "#E67E7E",
-		type: "mean",
-		params: {
-			file: "processed_data.csv",
-			column: "",
-		},
-	},
-	{
-		label: "abbreviate",
-		type: "custom",
-		icon: "🔠",
-		color: "#7EE67E",
-		type: "abbreviate",
-		params: {
-			processed_data_path: "processed_data.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
-			abbr_path: "abbreviation_data.csv",
-		},
-	},
-	{
-		label: "plot",
-		type: "custom",
-		icon: "📊",
-		color: "#B87E7E",
-		type: "plot",
-		params: {
-			data_file: "",
-			csv_file: "",
-			plot_type: "bar",
-			operation: "",
-			title: "",
-			x_label: "",
-			y_label: "",
-			color_column: "",
-			size_column: "",
-			facet_column: "",
-			width: "800",
-			height: "600",
-			output: "",
-		},
-	},
-	{
-		label: "join",
-		type: "custom",
-		icon: "🔗",
-		color: "#FF6B6B",
-		type: "join",
-		params: {
-			processed_files: "",
-			patients_files: "",
-			join_types: "inner",
-			join_columns: "patient_id",
-			output_processed: "joined_processed_data.csv",
-			output_patients: "joined_patients_df.csv",
-			suffixes: "_x,_y",
-		},
-	},
-];
-
 function App() {
 	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -246,7 +72,6 @@ function App() {
 
 	const saveArgoConfig = (config) => {
 		setArgoConfig(config);
-		// localStorage.setItem("argoConfig", JSON.stringify(config));
 	};
 
 	const onDrop = useCallback(
@@ -391,6 +216,7 @@ function App() {
 	// Updated function to find all root nodes instead of throwing error for multiple roots
 	const findRootNodes = () => {
 		const hasIncomingEdge = new Set();
+
 		edges.forEach(({ target }) => hasIncomingEdge.add(target));
 
 		const rootNodes = nodes.filter((node) => !hasIncomingEdge.has(node.id));
@@ -480,14 +306,12 @@ function App() {
 			// Find all root nodes instead of just one
 			const rootNodes = findRootNodes();
 			const rootNodeIds = rootNodes.map((node) => node.id);
-
 			setDebugLogs((prev) => [
 				...prev,
 				`Found ${rootNodes.length} root node(s): ${rootNodes
 					.map((n) => n.data.label)
 					.join(", ")}`,
 			]);
-
 			// Use updated traversal function that handles multiple roots
 			const nodeOrder = levelTraverseMultipleRoots(rootNodeIds);
 			const intermediateState = createIntermediateState(nodeOrder);
@@ -529,7 +353,7 @@ function App() {
 
 	async function monitorWorkflow(client, workflowName) {
 		const startTime = Date.now();
-		const timeout = 300000; // 5 minutes
+		const timeout = 600000; // 5 minutes
 		let attempts = 0;
 
 		while (Date.now() - startTime < timeout) {
@@ -600,249 +424,56 @@ function App() {
 		}
 	};
 
+	const handleDebugConsole = () => setShowDebugConsole(!showDebugConsole);
+
+	const handleConfigModal = () => setShowConfigModal(!showConfigModal);
+
 	return (
-		<div
-			className="app-container"
-			style={{
-				display: "flex",
-				width: "100vw",
-				height: "100vh",
-				fontFamily: "'Inter', sans-serif",
-			}}
-		>
+		<div className={styles.appContainer}>
 			<ToastContainer position="top-right" autoClose={3000} />
 
 			{/* Header */}
-			<div
-				style={{
-					position: "absolute",
-					top: 0,
-					left: 0,
-					right: 0,
-					height: "60px",
-					backgroundColor: "#ffffff",
-					borderBottom: "1px solid #e0e0e0",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					padding: "0 20px",
-					zIndex: 900,
-					boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-				}}
-			>
+			<div className={styles.header}>
 				<div style={{ display: "flex", alignItems: "center" }}>
-					<h1
-						style={{
-							fontSize: "1.4rem",
-							fontWeight: 600,
-							margin: 0,
-							color: "#333",
-						}}
-					>
+					<h1 className={styles.headerTitle}>
 						ICMR Workflow Designer
 					</h1>
 				</div>
-				<div style={{ display: "flex", gap: "15px" }}>
-					<button
-						onClick={() => setShowDebugConsole(!showDebugConsole)}
-						style={{
-							background: "none",
-							border: "none",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							cursor: "pointer",
-							fontSize: "1.2rem",
-							color: "#555",
-							padding: "8px",
-							borderRadius: "4px",
-							backgroundColor: showDebugConsole
-								? "#f0f0f0"
-								: "transparent",
-						}}
+				<div className={styles.headerPlaceholder}>
+					<HeaderActionButton
+						handleDebugConsole={handleDebugConsole}
+						showDebugConsole={showDebugConsole}
+						icon={<BsTerminal />}
 						title="Toggle Debug Console"
-					>
-						<BsTerminal />
-					</button>
-					<button
-						onClick={() => setShowConfigModal(true)}
-						style={{
-							background: "none",
-							border: "none",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							cursor: "pointer",
-							fontSize: "1.2rem",
-							color: "#555",
-							padding: "8px",
-							borderRadius: "4px",
-						}}
+					/>
+					<HeaderActionButton
+						handleDebugConsole={handleConfigModal}
+						showDebugConsole={showConfigModal}
+						icon={<IoMdSettings />}
 						title="Configure Argo"
-					>
-						<IoMdSettings />
-					</button>
+					/>
 				</div>
 			</div>
 
 			{/* Sidebar for drag-and-drop */}
-			<aside
-				style={{
-					width: "240px",
-					padding: "20px",
-					borderRight: "1px solid #e0e0e0",
-					backgroundColor: "#f8f8f8",
-					marginTop: "60px",
-					height: "calc(100vh - 60px)",
-					overflow: "auto",
-					zIndex: 800,
-				}}
-			>
-				<h3
-					style={{
-						marginBottom: "20px",
-						fontSize: "16px",
-						fontWeight: 600,
-						color: "#333",
-					}}
-				>
-					Node Palette
-				</h3>
-
-				<div
-					style={{
-						display: "flex",
-						flexDirection: "column",
-						gap: "12px",
-					}}
-				>
+			<aside className={styles.sidebar}>
+				<h3 className={styles.paletteTitle}>Node Palette</h3>
+				<div className={styles.sidebarContainer}>
 					{nodeTemplates.map((template, index) => (
-						<div
-							key={index}
-							style={{
-								padding: "14px",
-								backgroundColor: template.color || "#f1f1f1",
-								color: "#333",
-								border: "1px solid rgba(0, 0, 0, 0.06)",
-								borderRadius: "8px",
-								cursor: "grab",
-								display: "flex",
-								alignItems: "center",
-								fontSize: "14px",
-								boxShadow: "0 2px 5px rgba(0, 0, 0, 0.06)",
-								transition:
-									"transform 0.15s ease, box-shadow 0.15s ease",
-								fontWeight: 500,
-							}}
-							onDragStart={(event) => {
-								event.dataTransfer.setData(
-									"application/reactflow",
-									JSON.stringify(template)
-								);
-							}}
-							draggable
-							onMouseDown={(e) => {
-								e.currentTarget.style.transform = "scale(0.98)";
-								e.currentTarget.style.boxShadow =
-									"0 1px 3px rgba(0, 0, 0, 0.08)";
-							}}
-							onMouseUp={(e) => {
-								e.currentTarget.style.transform = "scale(1)";
-								e.currentTarget.style.boxShadow =
-									"0 2px 5px rgba(0, 0, 0, 0.06)";
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = "scale(1)";
-								e.currentTarget.style.boxShadow =
-									"0 2px 5px rgba(0, 0, 0, 0.06)";
-							}}
-						>
-							<span
-								style={{
-									marginRight: "10px",
-									fontSize: "20px",
-								}}
-							>
-								{template.icon}
-							</span>
-							{template.label}
-						</div>
+						<SidebarMenuItem key={index} template={template} />
 					))}
 				</div>
 
-				<div
-					style={{
-						marginTop: "30px",
-						display: "flex",
-						flexDirection: "column",
-						gap: "12px",
-					}}
-				>
-					<button
-						onClick={handleDeploy}
-						disabled={isRunning}
-						style={{
-							padding: "12px",
-							backgroundColor: isRunning ? "#88b7d9" : "#2684ff",
-							color: "white",
-							border: "none",
-							borderRadius: "6px",
-							cursor: isRunning ? "not-allowed" : "pointer",
-							fontWeight: 500,
-							fontSize: "14px",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							gap: "8px",
-							transition: "background-color 0.2s ease",
-							boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-						}}
-					>
-						<FaPlay size={14} />
-						{isRunning ? "Running..." : "Deploy Workflow"}
-					</button>
-
-					<button
-						onClick={clearCanvas}
-						style={{
-							padding: "12px",
-							backgroundColor: "#f8f8f8",
-							color: "#666",
-							border: "1px solid #ddd",
-							borderRadius: "6px",
-							cursor: "pointer",
-							fontWeight: 500,
-							fontSize: "14px",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							gap: "8px",
-							transition: "all 0.2s ease",
-						}}
-						onMouseOver={(e) => {
-							e.currentTarget.style.backgroundColor = "#f3f3f3";
-							e.currentTarget.style.borderColor = "#ccc";
-						}}
-						onMouseOut={(e) => {
-							e.currentTarget.style.backgroundColor = "#f8f8f8";
-							e.currentTarget.style.borderColor = "#ddd";
-						}}
-					>
-						<FaTrash size={14} />
-						Clear Canvas
-					</button>
-				</div>
+				<SidebarButtons
+					clearCanvas={clearCanvas}
+					handleDeploy={handleDeploy}
+					isRunning={isRunning}
+				/>
 			</aside>
 
 			{/* React Flow wrapper */}
 			<div
-				style={{
-					flex: 1,
-					position: "relative",
-					height: "calc(100vh - 60px)",
-					marginTop: "60px",
-				}}
-				className="reactflow-wrapper"
+				className={`${styles.reactflowWrapper} reactflow-wrapper`}
 				onDrop={onDrop}
 				onDragOver={onDragOver}
 			>
@@ -864,489 +495,43 @@ function App() {
 					}}
 				>
 					<Background color="#f5f5f5" gap={16} size={1} />
-					<Controls
-						style={{
-							borderRadius: "8px",
-							boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-							backgroundColor: "#ffffff",
-						}}
-					/>
+					<Controls className={styles.reactflowControls} />
 					<MiniMap
 						nodeStrokeColor={(n) => n.data?.color || "#555"}
 						nodeColor={(n) => n.data?.color || "#fff"}
 						maskColor="rgba(240, 240, 240, 0.6)"
-						style={{
-							right: 12,
-							bottom: 12,
-							borderRadius: "8px",
-							boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-						}}
+						className={styles.reactflowMiniMap}
 					/>
 				</ReactFlow>
 			</div>
 
 			{/* Parameter editing sidebar */}
 			{selectedNode && (
-				<div
-					style={{
-						position: "fixed",
-						top: "60px",
-						right: 0,
-						width: "360px",
-						height: "calc(100vh - 60px)",
-						backgroundColor: "#fff",
-						boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.08)",
-						padding: "20px",
-						overflowY: "auto",
-						zIndex: 1000,
-						transition: "transform 0.3s ease-in-out",
-					}}
-				>
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-							marginBottom: "24px",
-						}}
-					>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: "18px",
-								fontWeight: 600,
-								color: "#333",
-							}}
-						>
-							<span style={{ marginRight: "10px" }}>
-								{selectedNode.data.icon}
-							</span>
-							{selectedNode.data.label}
-						</h3>
-						<button
-							style={{
-								background: "none",
-								border: "none",
-								fontSize: "18px",
-								cursor: "pointer",
-								color: "#666",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								width: "30px",
-								height: "30px",
-								borderRadius: "4px",
-								transition: "background-color 0.2s",
-							}}
-							onClick={closeSidebar}
-							onMouseOver={(e) =>
-								(e.currentTarget.style.backgroundColor =
-									"#f0f0f0")
-							}
-							onMouseOut={(e) =>
-								(e.currentTarget.style.backgroundColor =
-									"transparent")
-							}
-						>
-							<FaTimes />
-						</button>
-					</div>
-					<div
-						style={{
-							padding: "18px",
-							backgroundColor: "#f9f9f9",
-							borderRadius: "8px",
-							border: "1px solid #eaeaea",
-						}}
-					>
-						<h4
-							style={{
-								marginTop: 0,
-								marginBottom: "20px",
-								fontSize: "16px",
-								fontWeight: 500,
-								color: "#444",
-							}}
-						>
-							Node Parameters
-						</h4>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								closeSidebar();
-							}}
-						>
-							{Object.entries(selectedNode.data.params || {}).map(
-								([key, value]) => (
-									<div
-										key={key}
-										style={{ marginBottom: "16px" }}
-									>
-										<label
-											style={{
-												display: "block",
-												marginBottom: "6px",
-												fontWeight: 500,
-												fontSize: "14px",
-												color: "#444",
-											}}
-											htmlFor={`param-${key}`}
-										>
-											{key
-												.replace(/_/g, " ")
-												.replace(/\b\w/g, (l) =>
-													l.toUpperCase()
-												)}
-											:
-										</label>
-										<input
-											id={`param-${key}`}
-											type="text"
-											value={value || ""} // Ensure value is never undefined
-											onChange={(e) => {
-												const newValue = e.target.value;
-
-												// Create a new params object with the updated value
-												const updatedParams = {
-													...selectedNode.data.params,
-													[key]: newValue,
-												};
-
-												// Update nodes state directly using setNodes
-												setNodes((nds) =>
-													nds.map((node) => {
-														if (
-															node.id ===
-															selectedNode.id
-														) {
-															const updatedNode =
-																{
-																	...node,
-																	data: {
-																		...node.data,
-																		params: updatedParams,
-																	},
-																};
-															return updatedNode;
-														}
-														return node;
-													})
-												);
-
-												// Update selectedNode to keep sidebar in sync
-												setSelectedNode(
-													(prevSelected) => ({
-														...prevSelected,
-														data: {
-															...prevSelected.data,
-															params: updatedParams,
-														},
-													})
-												);
-											}}
-											style={{
-												width: "100%",
-												padding: "10px 12px",
-												borderRadius: "6px",
-												border: "1px solid #ddd",
-												fontSize: "14px",
-												boxSizing: "border-box",
-												transition: "border-color 0.2s",
-												backgroundColor: "#fff", // Ensure background is white
-											}}
-											onFocus={(e) =>
-												(e.target.style.borderColor =
-													"#2684ff")
-											}
-											onBlur={(e) =>
-												(e.target.style.borderColor =
-													"#ddd")
-											}
-											// Add these to prevent any potential issues
-											autoComplete="off"
-											spellCheck="false"
-										/>
-									</div>
-								)
-							)}
-							<div
-								style={{
-									display: "flex",
-									justifyContent: "flex-end",
-									gap: "12px",
-									marginTop: "24px",
-								}}
-							>
-								<button
-									type="button"
-									onClick={closeSidebar}
-									style={{
-										padding: "8px 16px",
-										backgroundColor: "#f8f8f8",
-										border: "1px solid #ddd",
-										borderRadius: "6px",
-										fontSize: "14px",
-										cursor: "pointer",
-										color: "#555",
-									}}
-								>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									style={{
-										padding: "8px 16px",
-										backgroundColor: "#2684ff",
-										color: "white",
-										border: "none",
-										borderRadius: "6px",
-										fontSize: "14px",
-										cursor: "pointer",
-									}}
-								>
-									Save
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
+				<ParameterSidebar
+					closeSidebar={closeSidebar}
+					onNodeDataChange={onNodeDataChange}
+					selectedNode={nodes.find((n) => n.id === selectedNode.id)}
+				/>
 			)}
 
 			{/* Debug Console */}
 			{showDebugConsole && (
-				<div
-					style={{
-						position: "fixed",
-						bottom: 0,
-						left: "240px",
-						right: selectedNode ? "360px" : 0,
-						height: "200px",
-						backgroundColor: "#2b2b2b",
-						color: "#e0e0e0",
-						padding: "10px",
-						fontFamily: "monospace",
-						fontSize: "12px",
-						zIndex: 900,
-						display: "flex",
-						flexDirection: "column",
-						transition: "height 0.3s ease",
-					}}
-				>
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-							marginBottom: "10px",
-							borderBottom: "1px solid #444",
-							paddingBottom: "6px",
-						}}
-					>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "10px",
-							}}
-						>
-							<BsTerminal style={{ fontSize: "14px" }} />
-							<span
-								style={{ fontSize: "13px", fontWeight: "bold" }}
-							>
-								Debug Console
-							</span>
-							{workflowStatus && (
-								<span
-									style={{
-										fontSize: "12px",
-										padding: "2px 8px",
-										borderRadius: "10px",
-										backgroundColor: workflowStatus
-											.toLowerCase()
-											.includes("succeeded")
-											? "#4caf50"
-											: workflowStatus
-													.toLowerCase()
-													.includes("failed")
-											? "#f44336"
-											: "#2196f3",
-										color: "white",
-										marginLeft: "10px",
-									}}
-								>
-									{workflowStatus}
-								</span>
-							)}
-						</div>
-						<button
-							onClick={() => setShowDebugConsole(false)}
-							style={{
-								background: "none",
-								border: "none",
-								color: "#888",
-								cursor: "pointer",
-								fontSize: "14px",
-							}}
-						>
-							<FaTimes />
-						</button>
-					</div>
-					<div
-						style={{
-							flex: 1,
-							overflowY: "auto",
-							padding: "4px",
-						}}
-					>
-						{debugLogs.map((log, i) => (
-							<div
-								key={i}
-								style={{
-									margin: "4px 0",
-									whiteSpace: "pre-wrap",
-								}}
-							>
-								{log}
-							</div>
-						))}
-					</div>
-				</div>
+				<DebugConsole
+					debugLogs={debugLogs}
+					handleDebugConsole={handleDebugConsole}
+					selectedNode={selectedNode}
+					workflowStatus={workflowStatus}
+				/>
 			)}
 
 			{/* Config Modal */}
 			{showConfigModal && (
-				<div
-					style={{
-						position: "fixed",
-						top: 0,
-						left: 0,
-						right: 0,
-						bottom: 0,
-						backgroundColor: "rgba(0, 0, 0, 0.5)",
-						display: "flex",
-						justifyContent: "center",
-						alignItems: "center",
-						zIndex: 1100,
-					}}
-				>
-					<div
-						style={{
-							width: "500px",
-							backgroundColor: "white",
-							borderRadius: "8px",
-							padding: "24px",
-							boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-						}}
-					>
-						<h2
-							style={{
-								marginTop: 0,
-								marginBottom: "20px",
-								fontSize: "18px",
-								fontWeight: 600,
-							}}
-						>
-							Argo Configuration
-						</h2>
-						<div style={{ marginBottom: "20px" }}>
-							<label
-								style={{
-									display: "block",
-									marginBottom: "8px",
-									fontWeight: 500,
-									fontSize: "14px",
-								}}
-							>
-								Argo Server URL:
-							</label>
-							<input
-								type="text"
-								value={tempConfig.url}
-								onChange={(e) =>
-									setTempConfig({
-										...tempConfig,
-										url: e.target.value,
-									})
-								}
-								style={{
-									width: "100%",
-									padding: "10px 12px",
-									borderRadius: "6px",
-									border: "1px solid #ddd",
-									fontSize: "14px",
-									boxSizing: "border-box",
-								}}
-							/>
-						</div>
-						<div style={{ marginBottom: "24px" }}>
-							<label
-								style={{
-									display: "block",
-									marginBottom: "8px",
-									fontWeight: 500,
-									fontSize: "14px",
-								}}
-							>
-								Authentication Token:
-							</label>
-							<textarea
-								value={tempConfig.token}
-								onChange={(e) =>
-									setTempConfig({
-										...tempConfig,
-										token: e.target.value,
-									})
-								}
-								style={{
-									width: "100%",
-									height: "120px",
-									padding: "10px 12px",
-									borderRadius: "6px",
-									border: "1px solid #ddd",
-									fontSize: "14px",
-									boxSizing: "border-box",
-									fontFamily: "monospace",
-									resize: "vertical",
-								}}
-							/>
-						</div>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "flex-end",
-								gap: "12px",
-							}}
-						>
-							<button
-								onClick={() => setShowConfigModal(false)}
-								style={{
-									padding: "10px 16px",
-									backgroundColor: "#f8f8f8",
-									border: "1px solid #ddd",
-									borderRadius: "6px",
-									fontSize: "14px",
-									cursor: "pointer",
-								}}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleConfigSave}
-								style={{
-									padding: "10px 16px",
-									backgroundColor: "#2684ff",
-									color: "white",
-									border: "none",
-									borderRadius: "6px",
-									fontSize: "14px",
-									cursor: "pointer",
-								}}
-							>
-								Save
-							</button>
-						</div>
-					</div>
-				</div>
+				<ConfigModal
+					handleConfigModal={handleConfigModal}
+					setTempConfig={setTempConfig}
+					tempConfig={tempConfig}
+					handleConfigSave={handleConfigSave}
+				/>
 			)}
 		</div>
 	);

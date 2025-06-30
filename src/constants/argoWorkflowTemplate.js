@@ -38,24 +38,24 @@ export const argoWorkflowTemplate = {
 				},
 			},
 			{
-                name: "join",
-                inputs: { parameters: [] },
-                container: {
-                    image: "suryansh72/icmr-fhir-cli:latest",
-                    command: ["python", "/app/icmr_viz/cli.py", "join"],
-                    args: [],
-                    resources: {
-                        limits: { memory: "2Gi", cpu: "2" },
-                        requests: { memory: "1Gi", cpu: "1" },
-                    },
-                    env: [
-                        {
-                            name: "PYTHONUNBUFFERED",
-                            value: "1",
-                        },
-                    ],
-                },
-            },
+				name: "join",
+				inputs: { parameters: [] },
+				container: {
+					image: env.sdkImage,
+					command: ["python", "/app/icmr_viz/cli.py", "join"],
+					args: [],
+					resources: {
+						limits: { memory: "2Gi", cpu: "2" },
+						requests: { memory: "1Gi", cpu: "1" },
+					},
+					env: [
+						{
+							name: "PYTHONUNBUFFERED",
+							value: "1",
+						},
+					],
+				},
+			},
 			{
 				name: "correlation",
 				inputs: { parameters: [] },
