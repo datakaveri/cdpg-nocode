@@ -63,10 +63,6 @@ const nodeTemplates = [
 			obs_names_path: "obs_names.pkl",
 			cond_names_path: "cond_names.pkl",
 			dataset_name: "LeptoDemo",
-			minio_endpoint: "minio-service:9000",
-			minio_access_key: "minioadmin",
-			minio_secret_key: "minioadmin",
-			minio_secure: "False",
 		},
 	},
 	{
@@ -216,6 +212,22 @@ const nodeTemplates = [
 			output: "",
 		},
 	},
+  {
+    label: "join",
+    type: "custom",
+    icon: "🔗",
+    color: "#FF6B6B",
+    type: "join",
+    params: {
+        processed_files: "",
+        patients_files: "",
+        join_types: "inner",
+        join_columns: "patient_id",
+        output_processed: "joined_processed_data.csv",
+        output_patients: "joined_patients_df.csv",
+        suffixes: "_x,_y",
+    },
+  },
 ];
 
 function App() {
@@ -383,7 +395,8 @@ function App() {
 		return false;
 	};
 
-	const findRootNode = () => {
+	// Updated function to find all root nodes instead of throwing error for multiple roots
+	const findRootNodes = () => {
 		const hasIncomingEdge = new Set();
 		edges.forEach(({ target }) => hasIncomingEdge.add(target));
 
@@ -393,19 +406,14 @@ function App() {
 			throw new Error("Can't run the workflow: No root node found.");
 		}
 
-		if (rootNodes.length > 1) {
-			throw new Error(
-				"Can't run the workflow: Multiple root nodes found. The flow should have a single starting point."
-			);
-		}
-
-		return rootNodes[0];
+		return rootNodes;
 	};
 
-	const levelTraverse = (rootId) => {
+	// Updated level traversal to handle multiple root nodes
+	const levelTraverseMultipleRoots = (rootNodeIds) => {
 		const result = [];
 		const visited = new Set();
-		const queue = [rootId];
+		const queue = [...rootNodeIds]; // Start with all root nodes
 
 		const graph = new Map();
 		nodes.forEach((node) => graph.set(node.id, new Set()));
@@ -476,8 +484,14 @@ function App() {
 				throw new Error("No nodes in workflow");
 			}
 
-			const rootNode = findRootNode();
-			const nodeOrder = levelTraverse(rootNode.id);
+			// Find all root nodes instead of just one
+			const rootNodes = findRootNodes();
+			const rootNodeIds = rootNodes.map(node => node.id);
+			
+			setDebugLogs((prev) => [...prev, `Found ${rootNodes.length} root node(s): ${rootNodes.map(n => n.data.label).join(', ')}`]);
+
+			// Use updated traversal function that handles multiple roots
+			const nodeOrder = levelTraverseMultipleRoots(rootNodeIds);
 			const intermediateState = createIntermediateState(nodeOrder);
 			setIntermediateJson(intermediateState);
 
@@ -565,6 +579,7 @@ function App() {
 
 		throw new Error("Workflow monitoring timed out");
 	}
+
 
 	const [showConfigModal, setShowConfigModal] = useState(false);
 	const [tempConfig, setTempConfig] = useState({ ...argoConfig });
@@ -874,199 +889,215 @@ function App() {
 
 			{/* Parameter editing sidebar */}
 			{selectedNode && (
-				<div
-					style={{
-						position: "fixed",
-						top: "60px",
-						right: 0,
-						width: "360px",
-						height: "calc(100vh - 60px)",
-						backgroundColor: "#fff",
-						boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.08)",
-						padding: "20px",
-						overflowY: "auto",
-						zIndex: 1000,
-						transition: "transform 0.3s ease-in-out",
-					}}
-				>
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-							marginBottom: "24px",
-						}}
-					>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: "18px",
-								fontWeight: 600,
-								color: "#333",
-							}}
-						>
-							<span style={{ marginRight: "10px" }}>
-								{selectedNode.data.icon}
-							</span>
-							{selectedNode.data.label}
-						</h3>
-						<button
-							style={{
-								background: "none",
-								border: "none",
-								fontSize: "18px",
-								cursor: "pointer",
-								color: "#666",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								width: "30px",
-								height: "30px",
-								borderRadius: "4px",
-								transition: "background-color 0.2s",
-							}}
-							onClick={closeSidebar}
-							onMouseOver={(e) =>
-								(e.currentTarget.style.backgroundColor =
-									"#f0f0f0")
-							}
-							onMouseOut={(e) =>
-								(e.currentTarget.style.backgroundColor =
-									"transparent")
-							}
-						>
-							<FaTimes />
-						</button>
-					</div>
-					<div
-						style={{
-							padding: "18px",
-							backgroundColor: "#f9f9f9",
-							borderRadius: "8px",
-							border: "1px solid #eaeaea",
-						}}
-					>
-						<h4
-							style={{
-								marginTop: 0,
-								marginBottom: "20px",
-								fontSize: "16px",
-								fontWeight: 500,
-								color: "#444",
-							}}
-						>
-							Node Parameters
-						</h4>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								closeSidebar();
-							}}
-						>
-							{Object.entries(selectedNode.data.params).map(
-								([key, value]) => (
-									<div
-										key={key}
-										style={{ marginBottom: "16px" }}
-									>
-										<label
-											style={{
-												display: "block",
-												marginBottom: "6px",
-												fontWeight: 500,
-												fontSize: "14px",
-												color: "#444",
-											}}
-											htmlFor={`param-${key}`}
-										>
-											{key
-												.replace(/_/g, " ")
-												.replace(/\b\w/g, (l) =>
-													l.toUpperCase()
-												)}
-											:
-										</label>
-										<input
-											id={`param-${key}`}
-											type="text"
-											value={value || ""} // Adding || '' to ensure value is never undefined
-											onChange={(e) => {
-												const newParams = {
-													...selectedNode.data.params,
-													[key]: e.target.value,
-												};
-
-												// Update the node data
-												onNodeDataChange(
-													selectedNode.id,
-													{
-														params: newParams,
-													}
-												);
-											}}
-											style={{
-												width: "100%",
-												padding: "10px 12px",
-												borderRadius: "6px",
-												border: "1px solid #ddd",
-												fontSize: "14px",
-												boxSizing: "border-box",
-												transition: "border-color 0.2s",
-											}}
-											onFocus={(e) =>
-												(e.target.style.borderColor =
-													"#2684ff")
-											}
-											onBlur={(e) =>
-												(e.target.style.borderColor =
-													"#ddd")
-											}
-										/>
-									</div>
-								)
-							)}
-							<div
-								style={{
-									display: "flex",
-									justifyContent: "flex-end",
-									gap: "12px",
-									marginTop: "24px",
-								}}
-							>
-								<button
-									type="button"
-									onClick={closeSidebar}
-									style={{
-										padding: "8px 16px",
-										backgroundColor: "#f8f8f8",
-										border: "1px solid #ddd",
-										borderRadius: "6px",
-										fontSize: "14px",
-										cursor: "pointer",
-										color: "#555",
-									}}
-								>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									style={{
-										padding: "8px 16px",
-										backgroundColor: "#2684ff",
-										color: "white",
-										border: "none",
-										borderRadius: "6px",
-										fontSize: "14px",
-										cursor: "pointer",
-									}}
-								>
-									Save
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
-			)}
+      	<div
+      		style={{
+      			position: "fixed",
+      			top: "60px",
+      			right: 0,
+      			width: "360px",
+      			height: "calc(100vh - 60px)",
+      			backgroundColor: "#fff",
+      			boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.08)",
+      			padding: "20px",
+      			overflowY: "auto",
+      			zIndex: 1000,
+      			transition: "transform 0.3s ease-in-out",
+      		}}
+      	>
+      		<div
+      			style={{
+      				display: "flex",
+      				justifyContent: "space-between",
+      				alignItems: "center",
+      				marginBottom: "24px",
+      			}}
+      		>
+      			<h3
+      				style={{
+      					margin: 0,
+      					fontSize: "18px",
+      					fontWeight: 600,
+      					color: "#333",
+      				}}
+      			>
+      				<span style={{ marginRight: "10px" }}>
+      					{selectedNode.data.icon}
+      				</span>
+      				{selectedNode.data.label}
+      			</h3>
+      			<button
+      				style={{
+      					background: "none",
+      					border: "none",
+      					fontSize: "18px",
+      					cursor: "pointer",
+      					color: "#666",
+      					display: "flex",
+      					alignItems: "center",
+      					justifyContent: "center",
+      					width: "30px",
+      					height: "30px",
+      					borderRadius: "4px",
+      					transition: "background-color 0.2s",
+      				}}
+      				onClick={closeSidebar}
+      				onMouseOver={(e) =>
+      					(e.currentTarget.style.backgroundColor = "#f0f0f0")
+      				}
+      				onMouseOut={(e) =>
+      					(e.currentTarget.style.backgroundColor = "transparent")
+      				}
+      			>
+      				<FaTimes />
+      			</button>
+      		</div>
+      		<div
+      			style={{
+      				padding: "18px",
+      				backgroundColor: "#f9f9f9",
+      				borderRadius: "8px",
+      				border: "1px solid #eaeaea",
+      			}}
+      		>
+      			<h4
+      				style={{
+      					marginTop: 0,
+      					marginBottom: "20px",
+      					fontSize: "16px",
+      					fontWeight: 500,
+      					color: "#444",
+      				}}
+      			>
+      				Node Parameters
+      			</h4>
+      			<form
+      				onSubmit={(e) => {
+      					e.preventDefault();
+      					closeSidebar();
+      				}}
+      			>
+      				{Object.entries(selectedNode.data.params || {}).map(
+      					([key, value]) => (
+      						<div key={key} style={{ marginBottom: "16px" }}>
+      							<label
+      								style={{
+      									display: "block",
+      									marginBottom: "6px",
+      									fontWeight: 500,
+      									fontSize: "14px",
+      									color: "#444",
+      								}}
+      								htmlFor={`param-${key}`}
+      							>
+      								{key
+      									.replace(/_/g, " ")
+      									.replace(/\b\w/g, (l) => l.toUpperCase())}
+      								:
+      							</label>
+      							<input
+      								id={`param-${key}`}
+      								type="text"
+      								value={value || ""} // Ensure value is never undefined
+      								onChange={(e) => {
+      									const newValue = e.target.value;
+      									
+      									// Create a new params object with the updated value
+      									const updatedParams = {
+      										...selectedNode.data.params,
+      										[key]: newValue,
+      									};
+      
+      									// Update nodes state directly using setNodes
+      									setNodes((nds) =>
+      										nds.map((node) => {
+      											if (node.id === selectedNode.id) {
+      												const updatedNode = {
+      													...node,
+      													data: {
+      														...node.data,
+      														params: updatedParams,
+      													},
+      												};
+      												return updatedNode;
+      											}
+      											return node;
+      										})
+      									);
+      
+      									// Update selectedNode to keep sidebar in sync
+      									setSelectedNode(prevSelected => ({
+      										...prevSelected,
+      										data: {
+      											...prevSelected.data,
+      											params: updatedParams,
+      										},
+      									}));
+      								}}
+      								style={{
+      									width: "100%",
+      									padding: "10px 12px",
+      									borderRadius: "6px",
+      									border: "1px solid #ddd",
+      									fontSize: "14px",
+      									boxSizing: "border-box",
+      									transition: "border-color 0.2s",
+      									backgroundColor: "#fff", // Ensure background is white
+      								}}
+      								onFocus={(e) =>
+      									(e.target.style.borderColor = "#2684ff")
+      								}
+      								onBlur={(e) =>
+      									(e.target.style.borderColor = "#ddd")
+      								}
+      								// Add these to prevent any potential issues
+      								autoComplete="off"
+      								spellCheck="false"
+      							/>
+      						</div>
+      					)
+      				)}
+      				<div
+      					style={{
+      						display: "flex",
+      						justifyContent: "flex-end",
+      						gap: "12px",
+      						marginTop: "24px",
+      					}}
+      				>
+      					<button
+      						type="button"
+      						onClick={closeSidebar}
+      						style={{
+      							padding: "8px 16px",
+      							backgroundColor: "#f8f8f8",
+      							border: "1px solid #ddd",
+      							borderRadius: "6px",
+      							fontSize: "14px",
+      							cursor: "pointer",
+      							color: "#555",
+      						}}
+      					>
+      						Cancel
+      					</button>
+      					<button
+      						type="submit"
+      						style={{
+      							padding: "8px 16px",
+      							backgroundColor: "#2684ff",
+      							color: "white",
+      							border: "none",
+      							borderRadius: "6px",
+      							fontSize: "14px",
+      							cursor: "pointer",
+      						}}
+      					>
+      						Save
+      					</button>
+      				</div>
+      			</form>
+      		</div>
+      	</div>
+      )}
 
 			{/* Debug Console */}
 			{showDebugConsole && (
