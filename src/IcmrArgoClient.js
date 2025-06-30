@@ -31,11 +31,11 @@ export class IcmrArgoClient {
 
 			try {
 				const jsonResponse = JSON.parse(responseData);
-				console.log("Response:", JSON.stringify(jsonResponse, null, 2));
+				// console.log("Response:", JSON.stringify(jsonResponse, null, 2));
 				return jsonResponse;
 			} catch (e) {
 				// If response is not JSON, return text
-				console.log("Response (text):", responseData);
+				// console.log("Response (text):", responseData);
 				return { message: responseData };
 			}
 		} catch (error) {
@@ -52,7 +52,6 @@ export class IcmrArgoClient {
 
 	async submitWorkflow(workflow) {
 		const payload = { workflow };
-		console.log(payload);
 
 		try {
 			console.log(
@@ -115,9 +114,10 @@ export class IcmrArgoClient {
 
 	async getStatus(workflowName) {
 		try {
-			return this._makeRequest(
+			const res = await this._makeRequest(
 				`/api/v1/workflows/argo/${encodeURIComponent(workflowName)}`
 			);
+			return res; // Return the whole response object
 		} catch (error) {
 			console.error(
 				`Failed to get status for workflow ${workflowName}:`,

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import ReactFlow, {
 	Controls,
 	Background,
@@ -360,12 +360,11 @@ function App() {
 				]);
 				setWorkflowStatus("Checking status...");
 
-				const status = await client.getStatus(workflowName);
-				// Safely extract the status and convert to string if necessary
-				const currentStatus = status?.status?.toString() || "Unknown";
-				setWorkflowStatus(currentStatus);
+				const statusObj = await client.getStatus(workflowName);
 
-				console.log(currentStatus);
+				const currentStatus = statusObj?.status?.phase || "Unknown";
+
+				setWorkflowStatus(currentStatus);
 
 				if (
 					typeof currentStatus === "string" &&
