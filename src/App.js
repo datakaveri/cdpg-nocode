@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import ReactFlow, {
 	Controls,
 	Background,
@@ -212,22 +212,22 @@ const nodeTemplates = [
 			output: "",
 		},
 	},
-  {
-    label: "join",
-    type: "custom",
-    icon: "🔗",
-    color: "#FF6B6B",
-    type: "join",
-    params: {
-        processed_files: "",
-        patients_files: "",
-        join_types: "inner",
-        join_columns: "patient_id",
-        output_processed: "joined_processed_data.csv",
-        output_patients: "joined_patients_df.csv",
-        suffixes: "_x,_y",
-    },
-  },
+	{
+		label: "join",
+		type: "custom",
+		icon: "🔗",
+		color: "#FF6B6B",
+		type: "join",
+		params: {
+			processed_files: "",
+			patients_files: "",
+			join_types: "inner",
+			join_columns: "patient_id",
+			output_processed: "joined_processed_data.csv",
+			output_patients: "joined_patients_df.csv",
+			suffixes: "_x,_y",
+		},
+	},
 ];
 
 function App() {
@@ -240,20 +240,13 @@ function App() {
 	const [showDebugConsole, setShowDebugConsole] = useState(false);
 	const [workflowStatus, setWorkflowStatus] = useState(null);
 	const [argoConfig, setArgoConfig] = useState({
-		url: "http://localhost:8080",
-		token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlJ0eDJ4dmRxMVRXNERMaGZXU3dWY3BrcTdCajNCNWdCZkJnNzljaXpIQU0ifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzc1MDc0Mjg1LCJpYXQiOjE3NDM1MzgyODUsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwianRpIjoiZGU0MmIyNDItYmY0Mi00MmU4LWI4MDUtYWM1YTBlODJjY2M2Iiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJhcmdvIiwibm9kZSI6eyJuYW1lIjoibWluaWt1YmUiLCJ1aWQiOiI0ZmE1YzI4Ni00YTJiLTRiMjMtOWI5YS00NzJjMDQzYjNkNTQifSwicG9kIjp7Im5hbWUiOiJhcmdvLXNlcnZlci02YmZkZjhmNjk2LWZoY3RoIiwidWlkIjoiZmQ4YmZjMDgtNzllMy00YTZiLWI2NWMtYzc4OWQxMjMxYjNlIn0sInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJhcmdvLXNlcnZlciIsInVpZCI6ImE3MWRmYTRkLWQ3ZTAtNDhjYi1hYzRmLTQ5Y2UxMjAyOTM2YSJ9LCJ3YXJuYWZ0ZXIiOjE3NDM1NDE4OTJ9LCJuYmYiOjE3NDM1MzgyODUsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDphcmdvOmFyZ28tc2VydmVyIn0.IjczyolfCnkNkoR40BsSJPrm-83fOiKRmu5TORTgxXkdef_ZkHtNnsBfppztQQmDChx4KD7yJoZdLnrjRuomFdUzcCzZyCr-dAbgnHdVxh1gVyBBPyJG0AAHK5qlxYWsXlxXUwuuN-GqtKs0HOlGRMbA5hOy9OE5IK9zX9X913dK1sBB2pWJBI6Vl_KOiYM5-txX6x5CP4qq_3G99qYkMvvV7Q0H-pum7j_1dbc54ZY6oTaV8RzjwXqfhtSmgtsI3nbuuf7ZS858rqnX3bfnshPsKDibbgxFfX1WA31WvpgnI8-o3BfzVP_yJvQ2HUr_2q4B1IlMdFOLlAKRSIVwhQ",
+		url: env.argoUrl,
+		token: env.argoToken,
 	});
-
-	useEffect(() => {
-		const savedConfig = localStorage.getItem("argoConfig");
-		if (savedConfig) {
-			setArgoConfig(JSON.parse(savedConfig));
-		}
-	}, []);
 
 	const saveArgoConfig = (config) => {
 		setArgoConfig(config);
-		localStorage.setItem("argoConfig", JSON.stringify(config));
+		// localStorage.setItem("argoConfig", JSON.stringify(config));
 	};
 
 	const onDrop = useCallback(
@@ -486,9 +479,14 @@ function App() {
 
 			// Find all root nodes instead of just one
 			const rootNodes = findRootNodes();
-			const rootNodeIds = rootNodes.map(node => node.id);
-			
-			setDebugLogs((prev) => [...prev, `Found ${rootNodes.length} root node(s): ${rootNodes.map(n => n.data.label).join(', ')}`]);
+			const rootNodeIds = rootNodes.map((node) => node.id);
+
+			setDebugLogs((prev) => [
+				...prev,
+				`Found ${rootNodes.length} root node(s): ${rootNodes
+					.map((n) => n.data.label)
+					.join(", ")}`,
+			]);
 
 			// Use updated traversal function that handles multiple roots
 			const nodeOrder = levelTraverseMultipleRoots(rootNodeIds);
@@ -543,9 +541,10 @@ function App() {
 				]);
 				setWorkflowStatus("Checking status...");
 
-				const status = await client.getStatus(workflowName);
-				// Safely extract the status and convert to string if necessary
-				const currentStatus = status?.status?.toString() || "Unknown";
+				const statusObj = await client.getStatus(workflowName);
+
+				const currentStatus = statusObj?.status?.phase || "Unknown";
+
 				setWorkflowStatus(currentStatus);
 
 				if (
@@ -579,7 +578,6 @@ function App() {
 
 		throw new Error("Workflow monitoring timed out");
 	}
-
 
 	const [showConfigModal, setShowConfigModal] = useState(false);
 	const [tempConfig, setTempConfig] = useState({ ...argoConfig });
@@ -889,215 +887,230 @@ function App() {
 
 			{/* Parameter editing sidebar */}
 			{selectedNode && (
-      	<div
-      		style={{
-      			position: "fixed",
-      			top: "60px",
-      			right: 0,
-      			width: "360px",
-      			height: "calc(100vh - 60px)",
-      			backgroundColor: "#fff",
-      			boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.08)",
-      			padding: "20px",
-      			overflowY: "auto",
-      			zIndex: 1000,
-      			transition: "transform 0.3s ease-in-out",
-      		}}
-      	>
-      		<div
-      			style={{
-      				display: "flex",
-      				justifyContent: "space-between",
-      				alignItems: "center",
-      				marginBottom: "24px",
-      			}}
-      		>
-      			<h3
-      				style={{
-      					margin: 0,
-      					fontSize: "18px",
-      					fontWeight: 600,
-      					color: "#333",
-      				}}
-      			>
-      				<span style={{ marginRight: "10px" }}>
-      					{selectedNode.data.icon}
-      				</span>
-      				{selectedNode.data.label}
-      			</h3>
-      			<button
-      				style={{
-      					background: "none",
-      					border: "none",
-      					fontSize: "18px",
-      					cursor: "pointer",
-      					color: "#666",
-      					display: "flex",
-      					alignItems: "center",
-      					justifyContent: "center",
-      					width: "30px",
-      					height: "30px",
-      					borderRadius: "4px",
-      					transition: "background-color 0.2s",
-      				}}
-      				onClick={closeSidebar}
-      				onMouseOver={(e) =>
-      					(e.currentTarget.style.backgroundColor = "#f0f0f0")
-      				}
-      				onMouseOut={(e) =>
-      					(e.currentTarget.style.backgroundColor = "transparent")
-      				}
-      			>
-      				<FaTimes />
-      			</button>
-      		</div>
-      		<div
-      			style={{
-      				padding: "18px",
-      				backgroundColor: "#f9f9f9",
-      				borderRadius: "8px",
-      				border: "1px solid #eaeaea",
-      			}}
-      		>
-      			<h4
-      				style={{
-      					marginTop: 0,
-      					marginBottom: "20px",
-      					fontSize: "16px",
-      					fontWeight: 500,
-      					color: "#444",
-      				}}
-      			>
-      				Node Parameters
-      			</h4>
-      			<form
-      				onSubmit={(e) => {
-      					e.preventDefault();
-      					closeSidebar();
-      				}}
-      			>
-      				{Object.entries(selectedNode.data.params || {}).map(
-      					([key, value]) => (
-      						<div key={key} style={{ marginBottom: "16px" }}>
-      							<label
-      								style={{
-      									display: "block",
-      									marginBottom: "6px",
-      									fontWeight: 500,
-      									fontSize: "14px",
-      									color: "#444",
-      								}}
-      								htmlFor={`param-${key}`}
-      							>
-      								{key
-      									.replace(/_/g, " ")
-      									.replace(/\b\w/g, (l) => l.toUpperCase())}
-      								:
-      							</label>
-      							<input
-      								id={`param-${key}`}
-      								type="text"
-      								value={value || ""} // Ensure value is never undefined
-      								onChange={(e) => {
-      									const newValue = e.target.value;
-      									
-      									// Create a new params object with the updated value
-      									const updatedParams = {
-      										...selectedNode.data.params,
-      										[key]: newValue,
-      									};
-      
-      									// Update nodes state directly using setNodes
-      									setNodes((nds) =>
-      										nds.map((node) => {
-      											if (node.id === selectedNode.id) {
-      												const updatedNode = {
-      													...node,
-      													data: {
-      														...node.data,
-      														params: updatedParams,
-      													},
-      												};
-      												return updatedNode;
-      											}
-      											return node;
-      										})
-      									);
-      
-      									// Update selectedNode to keep sidebar in sync
-      									setSelectedNode(prevSelected => ({
-      										...prevSelected,
-      										data: {
-      											...prevSelected.data,
-      											params: updatedParams,
-      										},
-      									}));
-      								}}
-      								style={{
-      									width: "100%",
-      									padding: "10px 12px",
-      									borderRadius: "6px",
-      									border: "1px solid #ddd",
-      									fontSize: "14px",
-      									boxSizing: "border-box",
-      									transition: "border-color 0.2s",
-      									backgroundColor: "#fff", // Ensure background is white
-      								}}
-      								onFocus={(e) =>
-      									(e.target.style.borderColor = "#2684ff")
-      								}
-      								onBlur={(e) =>
-      									(e.target.style.borderColor = "#ddd")
-      								}
-      								// Add these to prevent any potential issues
-      								autoComplete="off"
-      								spellCheck="false"
-      							/>
-      						</div>
-      					)
-      				)}
-      				<div
-      					style={{
-      						display: "flex",
-      						justifyContent: "flex-end",
-      						gap: "12px",
-      						marginTop: "24px",
-      					}}
-      				>
-      					<button
-      						type="button"
-      						onClick={closeSidebar}
-      						style={{
-      							padding: "8px 16px",
-      							backgroundColor: "#f8f8f8",
-      							border: "1px solid #ddd",
-      							borderRadius: "6px",
-      							fontSize: "14px",
-      							cursor: "pointer",
-      							color: "#555",
-      						}}
-      					>
-      						Cancel
-      					</button>
-      					<button
-      						type="submit"
-      						style={{
-      							padding: "8px 16px",
-      							backgroundColor: "#2684ff",
-      							color: "white",
-      							border: "none",
-      							borderRadius: "6px",
-      							fontSize: "14px",
-      							cursor: "pointer",
-      						}}
-      					>
-      						Save
-      					</button>
-      				</div>
-      			</form>
-      		</div>
-      	</div>
-      )}
+				<div
+					style={{
+						position: "fixed",
+						top: "60px",
+						right: 0,
+						width: "360px",
+						height: "calc(100vh - 60px)",
+						backgroundColor: "#fff",
+						boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.08)",
+						padding: "20px",
+						overflowY: "auto",
+						zIndex: 1000,
+						transition: "transform 0.3s ease-in-out",
+					}}
+				>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "space-between",
+							alignItems: "center",
+							marginBottom: "24px",
+						}}
+					>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: "18px",
+								fontWeight: 600,
+								color: "#333",
+							}}
+						>
+							<span style={{ marginRight: "10px" }}>
+								{selectedNode.data.icon}
+							</span>
+							{selectedNode.data.label}
+						</h3>
+						<button
+							style={{
+								background: "none",
+								border: "none",
+								fontSize: "18px",
+								cursor: "pointer",
+								color: "#666",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								width: "30px",
+								height: "30px",
+								borderRadius: "4px",
+								transition: "background-color 0.2s",
+							}}
+							onClick={closeSidebar}
+							onMouseOver={(e) =>
+								(e.currentTarget.style.backgroundColor =
+									"#f0f0f0")
+							}
+							onMouseOut={(e) =>
+								(e.currentTarget.style.backgroundColor =
+									"transparent")
+							}
+						>
+							<FaTimes />
+						</button>
+					</div>
+					<div
+						style={{
+							padding: "18px",
+							backgroundColor: "#f9f9f9",
+							borderRadius: "8px",
+							border: "1px solid #eaeaea",
+						}}
+					>
+						<h4
+							style={{
+								marginTop: 0,
+								marginBottom: "20px",
+								fontSize: "16px",
+								fontWeight: 500,
+								color: "#444",
+							}}
+						>
+							Node Parameters
+						</h4>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								closeSidebar();
+							}}
+						>
+							{Object.entries(selectedNode.data.params || {}).map(
+								([key, value]) => (
+									<div
+										key={key}
+										style={{ marginBottom: "16px" }}
+									>
+										<label
+											style={{
+												display: "block",
+												marginBottom: "6px",
+												fontWeight: 500,
+												fontSize: "14px",
+												color: "#444",
+											}}
+											htmlFor={`param-${key}`}
+										>
+											{key
+												.replace(/_/g, " ")
+												.replace(/\b\w/g, (l) =>
+													l.toUpperCase()
+												)}
+											:
+										</label>
+										<input
+											id={`param-${key}`}
+											type="text"
+											value={value || ""} // Ensure value is never undefined
+											onChange={(e) => {
+												const newValue = e.target.value;
+
+												// Create a new params object with the updated value
+												const updatedParams = {
+													...selectedNode.data.params,
+													[key]: newValue,
+												};
+
+												// Update nodes state directly using setNodes
+												setNodes((nds) =>
+													nds.map((node) => {
+														if (
+															node.id ===
+															selectedNode.id
+														) {
+															const updatedNode =
+																{
+																	...node,
+																	data: {
+																		...node.data,
+																		params: updatedParams,
+																	},
+																};
+															return updatedNode;
+														}
+														return node;
+													})
+												);
+
+												// Update selectedNode to keep sidebar in sync
+												setSelectedNode(
+													(prevSelected) => ({
+														...prevSelected,
+														data: {
+															...prevSelected.data,
+															params: updatedParams,
+														},
+													})
+												);
+											}}
+											style={{
+												width: "100%",
+												padding: "10px 12px",
+												borderRadius: "6px",
+												border: "1px solid #ddd",
+												fontSize: "14px",
+												boxSizing: "border-box",
+												transition: "border-color 0.2s",
+												backgroundColor: "#fff", // Ensure background is white
+											}}
+											onFocus={(e) =>
+												(e.target.style.borderColor =
+													"#2684ff")
+											}
+											onBlur={(e) =>
+												(e.target.style.borderColor =
+													"#ddd")
+											}
+											// Add these to prevent any potential issues
+											autoComplete="off"
+											spellCheck="false"
+										/>
+									</div>
+								)
+							)}
+							<div
+								style={{
+									display: "flex",
+									justifyContent: "flex-end",
+									gap: "12px",
+									marginTop: "24px",
+								}}
+							>
+								<button
+									type="button"
+									onClick={closeSidebar}
+									style={{
+										padding: "8px 16px",
+										backgroundColor: "#f8f8f8",
+										border: "1px solid #ddd",
+										borderRadius: "6px",
+										fontSize: "14px",
+										cursor: "pointer",
+										color: "#555",
+									}}
+								>
+									Cancel
+								</button>
+								<button
+									type="submit"
+									style={{
+										padding: "8px 16px",
+										backgroundColor: "#2684ff",
+										color: "white",
+										border: "none",
+										borderRadius: "6px",
+										fontSize: "14px",
+										cursor: "pointer",
+									}}
+								>
+									Save
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			)}
 
 			{/* Debug Console */}
 			{showDebugConsole && (

@@ -1,3 +1,5 @@
+import { env } from "../environments/environments";
+
 export const argoWorkflowTemplate = {
 	apiVersion: "argoproj.io/v1alpha1",
 	kind: "Workflow",
@@ -16,7 +18,7 @@ export const argoWorkflowTemplate = {
 				name: "download-data",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: [
 						"python",
 						"/app/icmr_viz/cli.py",
@@ -58,7 +60,7 @@ export const argoWorkflowTemplate = {
 				name: "correlation",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "correlation"],
 					args: [],
 					resources: {
@@ -77,7 +79,7 @@ export const argoWorkflowTemplate = {
 				name: "condition",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "condition"],
 					args: [],
 					resources: {
@@ -96,7 +98,7 @@ export const argoWorkflowTemplate = {
 				name: "observation",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "observation"],
 					args: [],
 					resources: {
@@ -115,7 +117,7 @@ export const argoWorkflowTemplate = {
 				name: "cluster",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "cluster"],
 					args: [],
 					resources: {
@@ -134,7 +136,7 @@ export const argoWorkflowTemplate = {
 				name: "frequency",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "frequency"],
 					args: [],
 					resources: {
@@ -153,7 +155,7 @@ export const argoWorkflowTemplate = {
 				name: "range",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "range"],
 					args: [],
 					resources: {
@@ -172,7 +174,7 @@ export const argoWorkflowTemplate = {
 				name: "std",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "std"],
 					args: [],
 					resources: {
@@ -191,7 +193,7 @@ export const argoWorkflowTemplate = {
 				name: "mode",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "mode"],
 					args: [],
 					resources: {
@@ -210,7 +212,7 @@ export const argoWorkflowTemplate = {
 				name: "median",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "median"],
 					args: [],
 					resources: {
@@ -229,7 +231,7 @@ export const argoWorkflowTemplate = {
 				name: "mean",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "mean"],
 					args: [],
 					resources: {
@@ -248,7 +250,7 @@ export const argoWorkflowTemplate = {
 				name: "abbreviate",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "abbreviate"],
 					args: [],
 					resources: {
@@ -267,7 +269,7 @@ export const argoWorkflowTemplate = {
 				name: "plot",
 				inputs: { parameters: [] },
 				container: {
-					image: "suryansh72/icmr-fhir-cli:latest",
+					image: env.sdkImage,
 					command: ["python", "/app/icmr_viz/cli.py", "plot"],
 					args: [],
 					resources: {
