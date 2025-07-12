@@ -285,6 +285,82 @@ export const argoWorkflowTemplate = {
 				},
 			},
 			{
+				name: "symptom-pattern",
+				inputs: { parameters: [] },
+				container: {
+					image: env.sdkImage,
+					command: ["python", "/app/icmr_viz/cli.py", "symptom-pattern"],
+					args: [],
+					resources: {
+						limits: { memory: "2Gi", cpu: "2" },
+						requests: { memory: "1Gi", cpu: "1" },
+					},
+					env: [
+						{
+							name: "PYTHONUNBUFFERED",
+							value: "1",
+						},
+					],
+				},
+			},
+			{
+				name: "covariance",
+				inputs: { parameters: [] },
+				container: {
+					image: env.sdkImage,
+					command: ["python", "/app/icmr_viz/cli.py", "covariance"],
+					args: [],
+					resources: {
+						limits: { memory: "2Gi", cpu: "2" },
+						requests: { memory: "1Gi", cpu: "1" },
+					},
+					env: [
+						{
+							name: "PYTHONUNBUFFERED",
+							value: "1",
+						},
+					],
+				},
+			},
+			{
+				name: "corr-coefficient",
+				inputs: { parameters: [] },
+				container: {
+					image: env.sdkImage,
+					command: ["python", "/app/icmr_viz/cli.py", "corr-coefficient"],
+					args: [],
+					resources: {
+						limits: { memory: "2Gi", cpu: "2" },
+						requests: { memory: "1Gi", cpu: "1" },
+					},
+					env: [
+						{
+							name: "PYTHONUNBUFFERED",
+							value: "1",
+						},
+					],
+				},
+			},
+			{
+				name: "prevalence",
+				inputs: { parameters: [] },
+				container: {
+					image: env.sdkImage,
+					command: ["python", "/app/icmr_viz/cli.py", "prevalence"],
+					args: [],
+					resources: {
+						limits: { memory: "2Gi", cpu: "2" },
+						requests: { memory: "1Gi", cpu: "1" },
+					},
+					env: [
+						{
+							name: "PYTHONUNBUFFERED",
+							value: "1",
+						},
+					],
+				},
+			},
+			{
 				name: "main-dag",
 				dag: { tasks: [] },
 			},

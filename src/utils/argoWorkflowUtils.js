@@ -52,6 +52,11 @@ const nodeTypeToTemplate = {
 	abbreviate: "abbreviate",
 	plot: "plot",
 	join: "join",
+	"generate-report": "generate-report", // Add this mapping
+	"symptom-pattern": "symptom-pattern", // Add this mapping
+	covariance: "covariance", // Add this mapping
+	"corr-coefficient": "corr-coefficient", // Add this mapping
+	prevalence: "prevalence", // Add this mapping
 };
 
 function mapNodeToTask(node) {
@@ -70,8 +75,15 @@ function mapNodeToTask(node) {
 			.toLowerCase()}`;
 	}
 
-	// Clean task name
+	// Clean task name - ensure it's valid for Kubernetes
 	let taskName = node.info.id.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+	
+	// Remove any leading/trailing dashes and ensure it doesn't start with a number
+	taskName = taskName.replace(/^-+|-+$/g, '');
+	if (/^[0-9]/.test(taskName)) {
+		taskName = `node-${taskName}`;
+	}
+	
 	if (node.info.type === "plot" && node.data.operation) {
 		taskName = `${taskName}-${node.data.operation}`
 			.replace(/[^a-z0-9-]/gi, "-")
@@ -89,9 +101,14 @@ function mapNodeToTask(node) {
 
 	// Add dependencies if they exist
 	if (node.info.depends && node.info.depends.length > 0) {
-		task.dependencies = node.info.depends.map((dep) =>
-			dep.replace(/[^a-z0-9-]/gi, "-").toLowerCase()
-		);
+		task.dependencies = node.info.depends.map((dep) => {
+			let cleanDep = dep.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+			cleanDep = cleanDep.replace(/^-+|-+$/g, '');
+			if (/^[0-9]/.test(cleanDep)) {
+				cleanDep = `node-${cleanDep}`;
+			}
+			return cleanDep;
+		});
 	}
 
 	return task;
@@ -207,6 +224,12 @@ export function generateArgoWorkflow(name, nodes) {
 		const baseTemplateName =
 			nodeTypeToTemplate[node.info.type] || node.info.type;
 		let baseTemplate = originalTemplates.get(baseTemplateName);
+
+		// Log missing templates for debugging
+		if (!baseTemplate) {
+			console.warn(`No base template found for node type: ${node.info.type}, expected template: ${baseTemplateName}`);
+			return; // Skip this node if no template is found
+		}
 
 		// Special handling for plot nodes
 		if (node.info.type === "plot") {
