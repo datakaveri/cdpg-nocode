@@ -435,9 +435,13 @@ function App() {
 			{/* Header */}
 			<div className={styles.header}>
 				<div style={{ display: "flex", alignItems: "center" }}>
-					<h1 className={styles.headerTitle}>
-						ICMR Workflow Designer
-					</h1>
+					{/* <h1  */}
+					<img
+						className={styles.headerTitle}
+						src="/adarv-logo.png"
+						alt="adarv-logo"
+					></img>
+					{/* </h1> */}
 				</div>
 				<div className={styles.headerPlaceholder}>
 					<HeaderActionButton
@@ -446,12 +450,12 @@ function App() {
 						icon={<BsTerminal />}
 						title="Toggle Debug Console"
 					/>
-					<HeaderActionButton
+					{/* <HeaderActionButton
 						handleDebugConsole={handleConfigModal}
 						showDebugConsole={showConfigModal}
 						icon={<IoMdSettings />}
 						title="Configure Argo"
-					/>
+					/> */}
 				</div>
 			</div>
 
