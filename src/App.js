@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import ReactFlow, {
 	Controls,
 	Background,
@@ -40,15 +40,12 @@ const initialNodes = [
 			label: "load-dataset",
 			params: {
 				base_url: "https://fhir.rs.adarv.in/fhir",
-				processed_data_path: "processed_data.csv",
-				patients_df_path: "patients_df.csv",
-				obs_names_path: "obs_names.pkl",
-				cond_names_path: "cond_names.pkl",
 				dataset_name: "LeptoDemo",
 			},
 			icon: "📥",
 			color: "#E6897E",
 			type: "load-dataset",
+			description: "Load a dataset from FHIR server",
 		},
 		type: "custom",
 	},
@@ -69,6 +66,13 @@ function App() {
 		url: env.argoUrl,
 		token: env.argoToken,
 	});
+
+	// Effect to clear selectedNode if it no longer exists in nodes array
+	useEffect(() => {
+		if (selectedNode && !nodes.find(node => node.id === selectedNode.id)) {
+			setSelectedNode(null);
+		}
+	}, [nodes, selectedNode]);
 
 	const saveArgoConfig = (config) => {
 		setArgoConfig(config);
@@ -108,6 +112,7 @@ function App() {
 					icon: nodeTemplate.icon,
 					color: nodeTemplate.color,
 					type: nodeTemplate.type,
+					description: nodeTemplate.description,
 				},
 			};
 
@@ -146,6 +151,22 @@ function App() {
 		[setEdges]
 	);
 
+	// Enhanced onNodesChange to handle deletion properly
+	const onNodesChangeWithCleanup = useCallback((changes) => {
+		// Check if any nodes are being removed
+		const removedNodes = changes.filter(change => change.type === 'remove');
+		
+		if (removedNodes.length > 0) {
+			// If the selected node is being removed, clear the selection
+			if (selectedNode && removedNodes.some(change => change.id === selectedNode.id)) {
+				setSelectedNode(null);
+			}
+		}
+		
+		// Apply the changes
+		onNodesChange(changes);
+	}, [onNodesChange, selectedNode]);
+
 	const onNodeDataChange = useCallback(
 		(id, newData) => {
 			setNodes((nds) =>
@@ -181,6 +202,24 @@ function App() {
 	const closeSidebar = () => {
 		setSelectedNode(null);
 	};
+
+	// Add explicit delete function for nodes
+	const deleteNode = useCallback((nodeId) => {
+		// Remove the node
+		setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+		
+		// Remove any edges connected to this node
+		setEdges((eds) => eds.filter((edge) => 
+			edge.source !== nodeId && edge.target !== nodeId
+		));
+		
+		// Clear selection if the deleted node was selected
+		if (selectedNode && selectedNode.id === nodeId) {
+			setSelectedNode(null);
+		}
+		
+		toast.info("Node deleted");
+	}, [setNodes, setEdges, selectedNode]);
 
 	const hasLoop = () => {
 		const visited = new Set();
@@ -420,6 +459,7 @@ function App() {
 		) {
 			setNodes([]);
 			setEdges([]);
+			setSelectedNode(null); // Clear selection when clearing canvas
 			toast.info("Canvas cleared");
 		}
 	};
@@ -427,6 +467,12 @@ function App() {
 	const handleDebugConsole = () => setShowDebugConsole(!showDebugConsole);
 
 	const handleConfigModal = () => setShowConfigModal(!showConfigModal);
+
+	// Function to get the current selected node safely
+	const getCurrentSelectedNode = () => {
+		if (!selectedNode) return null;
+		return nodes.find((n) => n.id === selectedNode.id) || null;
+	};
 
 	return (
 		<div className={styles.appContainer}>
@@ -436,7 +482,7 @@ function App() {
 			<div className={styles.header}>
 				<div style={{ display: "flex", alignItems: "center" }}>
 					<h1 className={styles.headerTitle}>
-						ICMR Workflow Designer
+						Workflow Designer
 					</h1>
 				</div>
 				<div className={styles.headerPlaceholder}>
@@ -459,9 +505,47 @@ function App() {
 			<aside className={styles.sidebar}>
 				<h3 className={styles.paletteTitle}>Node Palette</h3>
 				<div className={styles.sidebarContainer}>
-					{nodeTemplates.map((template, index) => (
-						<SidebarMenuItem key={index} template={template} />
-					))}
+					{/* Visualization Section */}
+					<div className={styles.sectionHeader}>
+						<h4>Visualization</h4>
+					</div>
+					{nodeTemplates
+						.filter(template => template.label === "plot")
+						.map((template, index) => (
+							<SidebarMenuItem key={`viz-${index}`} template={template} />
+						))}
+
+					{/* Analytics Section */}
+					<div className={styles.sectionHeader}>
+						<h4>Analytics</h4>
+					</div>
+					{nodeTemplates
+						.filter(template => 
+							["correlation", "cluster", "frequency", "range", "std", "mode", "median", "mean", "abbreviate", "join", "symptom-pattern", "covariance", "corr-coefficient", "prevalence"].includes(template.label)
+						)
+						.map((template, index) => (
+							<SidebarMenuItem key={`analytics-${index}`} template={template} />
+						))}
+
+					{/* FHIR Resource Operations Section */}
+					<div className={styles.sectionHeader}>
+						<h4>FHIR Resource Operations</h4>
+					</div>
+					{nodeTemplates
+						.filter(template => ["observation", "condition"].includes(template.label))
+						.map((template, index) => (
+							<SidebarMenuItem key={`fhir-${index}`} template={template} />
+						))}
+
+					{/* Data Upload Section */}
+					<div className={styles.sectionHeader}>
+						<h4>Data Upload</h4>
+					</div>
+					{nodeTemplates
+						.filter(template => template.label === "load-dataset")
+						.map((template, index) => (
+							<SidebarMenuItem key={`upload-${index}`} template={template} />
+						))}
 				</div>
 
 				<SidebarButtons
@@ -480,7 +564,7 @@ function App() {
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}
-					onNodesChange={onNodesChange}
+					onNodesChange={onNodesChangeWithCleanup}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
 					onNodeClick={onNodeClick}
@@ -493,6 +577,7 @@ function App() {
 						animated: true,
 						type: "default",
 					}}
+					deleteKeyCode={["Backspace", "Delete"]}
 				>
 					<Background color="#f5f5f5" gap={16} size={1} />
 					<Controls className={styles.reactflowControls} />
@@ -505,12 +590,13 @@ function App() {
 				</ReactFlow>
 			</div>
 
-			{/* Parameter editing sidebar */}
-			{selectedNode && (
+			{/* Parameter editing sidebar - only show if selectedNode exists in current nodes */}
+			{selectedNode && getCurrentSelectedNode() && (
 				<ParameterSidebar
 					closeSidebar={closeSidebar}
 					onNodeDataChange={onNodeDataChange}
-					selectedNode={nodes.find((n) => n.id === selectedNode.id)}
+					selectedNode={getCurrentSelectedNode()}
+					deleteNode={deleteNode}
 				/>
 			)}
 

@@ -49,6 +49,27 @@
 	flex-direction: column;
 	gap: 12px;
 }
+
+.sectionHeader {
+	margin-top: 20px;
+	margin-bottom: 12px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.sectionHeader:first-child {
+	margin-top: 0;
+}
+
+.sectionHeader h4 {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #555;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
 .paletteTitle {
 	margin-bottom: 20px;
 	font-size: 16px;

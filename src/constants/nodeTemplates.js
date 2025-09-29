@@ -2,16 +2,13 @@ export const nodeTemplates = [
 	{
 		label: "load-dataset",
 		type: "custom",
-		icon: "📥",
+		icon: "📊",
 		color: "#E6897E",
 		type: "load-dataset",
+		description: "Load a dataset from FHIR server ",
 		params: {
 			base_url: "https://fhir.rs.adarv.in/fhir",
-			processed_data_path: "processed_data.csv",
-			patients_df_path: "patients_df.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
-			dataset_name: "LeptoDemo",
+			dataset_name: "LeptoDemo"
 		},
 	},
 
@@ -21,10 +18,8 @@ export const nodeTemplates = [
 		icon: "🔗",
 		color: "#B87EE6",
 		type: "correlation",
+		description: "Standardized measure of relationship between two variables, ranges from -1 to +1.",
 		params: {
-			input: "processed_data.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
 		},
 	},
 
@@ -34,18 +29,18 @@ export const nodeTemplates = [
 		icon: "🏥",
 		color: "#7EE6B8",
 		type: "condition",
+		description: "Lists selected specific condition fhir resource types for the loaded dataset. default : all conditions",
 		params: {
-			input: "patients_df.csv",
 		},
-	},
+	},	
 	{
 		label: "observation",
 		type: "custom",
-		icon: "🔍",
+		icon: "🔬",
 		color: "#7EB8E6",
 		type: "observation",
+		description: "Lists selected specific observation fhir resource types for the loaded dataset. default : all observations",
 		params: {
-			input: "patients_df.csv",
 		},
 	},
 	{
@@ -54,8 +49,8 @@ export const nodeTemplates = [
 		icon: "🎯",
 		color: "#E6B87E",
 		type: "cluster",
+		description: "Grouping patients/data points into clusters based on similarity.",
 		params: {
-			file: "processed_data.csv",
 			features: "",
 			clusters: "3",
 			topx: "10",
@@ -64,20 +59,13 @@ export const nodeTemplates = [
 
 	{
 		label: "frequency",
-
 		type: "custom",
-
-		icon: "📊",
-
+		icon: "📈",
 		color: "#7EE6E6",
-
 		type: "frequency",
-
+		description: "The count of how many times each value appears.",
 		params: {
-			file: "processed_data.csv",
-
 			column: "",
-
 			proportion: "false",
 		},
 	},
@@ -88,8 +76,8 @@ export const nodeTemplates = [
 		icon: "📏",
 		color: "#E67EB8",
 		type: "range",
+		description: "The difference between the maximum and minimum values.",
 		params: {
-			file: "processed_data.csv",
 			column: "",
 		},
 	},
@@ -100,8 +88,8 @@ export const nodeTemplates = [
 		icon: "📐",
 		color: "#B8E67E",
 		type: "std",
+		description: "A measure of how spread out values are around the mean.",
 		params: {
-			file: "processed_data.csv",
 			column: "",
 		},
 	},
@@ -112,8 +100,8 @@ export const nodeTemplates = [
 		icon: "🎲",
 		color: "#E6E67E",
 		type: "mode",
+		description: "The most frequently occurring value(s) for an attribute or column in a dataset",
 		params: {
-			file: "processed_data.csv",
 			column: "",
 		},
 	},
@@ -121,11 +109,11 @@ export const nodeTemplates = [
 	{
 		label: "median",
 		type: "custom",
-		icon: "📊",
+		icon: "⚖️",
 		color: "#7E7EE6",
 		type: "median",
+		description: "The middle value when all data points are sorted.",
 		params: {
-			file: "processed_data.csv",
 			column: "",
 		},
 	},
@@ -133,9 +121,10 @@ export const nodeTemplates = [
 	{
 		label: "mean",
 		type: "custom",
-		icon: "📈",
+		icon: "🧮",
 		color: "#E67E7E",
 		type: "mean",
+		description: "The average of an attribute or a column in a  dataset.",
 		params: {
 			file: "processed_data.csv",
 			column: "",
@@ -144,14 +133,11 @@ export const nodeTemplates = [
 	{
 		label: "abbreviate",
 		type: "custom",
-		icon: "🔠",
+		icon: "📝",
 		color: "#7EE67E",
 		type: "abbreviate",
+		description: "Creates abbreviated versions of observation and condition names for better visualization. Helps with readability in charts.",
 		params: {
-			processed_data_path: "processed_data.csv",
-			obs_names_path: "obs_names.pkl",
-			cond_names_path: "cond_names.pkl",
-			abbr_path: "abbreviation_data.csv",
 		},
 	},
 
@@ -161,6 +147,7 @@ export const nodeTemplates = [
 		icon: "📊",
 		color: "#B87E7E",
 		type: "plot",
+		description: "Creates interactive visualizations . Supports multiple chart types including bar, line, scatter, heatmap, and network plots.",
 		params: {
 			data_file: "",
 			csv_file: "",
@@ -180,16 +167,13 @@ export const nodeTemplates = [
 	{
 		label: "join",
 		type: "custom",
-		icon: "🔗",
+		icon: "🔀",
 		color: "#FF6B6B",
 		type: "join",
+		description: "Combines multiple datasets using various join operations (inner, outer, left, right). Merges data based on specified columns.",
 		params: {
-			processed_files: "",
-			patients_files: "",
 			join_types: "inner",
 			join_columns: "patient_id",
-			output_processed: "joined_processed_data.csv",
-			output_patients: "joined_patients_df.csv",
 			suffixes: "_x,_y",
 		},
 	},
@@ -199,10 +183,8 @@ export const nodeTemplates = [
 		icon: "🔍",
 		color: "#E74C3C",
 		type: "symptom-pattern",
+		description: "analyzes data to discover frequent co-occurrences and association rules (like 'if fever then headache') using statistical pattern mining with configurable support, confidence, and lift thresholds.",
 		params: {
-			input: "processed_data.csv",
-			obs_names: "obs_names.pkl",
-			cond_names: "cond_names.pkl",
 			min_support: "0.1",
 			min_confidence: "0.7",
 			min_lift: "1.2",
@@ -212,11 +194,11 @@ export const nodeTemplates = [
 	{
 		label: "covariance",
 		type: "custom",
-		icon: "📊",
+		icon: "📉",
 		color: "#3498DB",
 		type: "covariance",
+		description: "Calculates covariance between two numeric variables. Measures how variables change together in relation to their means.",
 		params: {
-			input_file: "processed_data.csv",
 			col1: "",
 			col2: "",
 		},
@@ -224,11 +206,11 @@ export const nodeTemplates = [
 	{
 		label: "corr-coefficient",
 		type: "custom",
-		icon: "📈",
+		icon: "🔢",
 		color: "#1ABC9C",
 		type: "corr-coefficient",
+		description: "The exact numerical value of correlation (e.g., Pearson’s, Spearmen). Tells how strong and in which direction two healthcare metrics are related.",
 		params: {
-			input_file: "processed_data.csv",
 			col1: "",
 			col2: "",
 		},
@@ -236,11 +218,11 @@ export const nodeTemplates = [
 	{
 		label: "prevalence",
 		type: "custom",
-		icon: "📊",
+		icon: "📋",
 		color: "#F39C12",
 		type: "prevalence",
+		description: "Calculates disease prevalence rates in the population. Shows percentage of patients with specific conditions.",
 		params: {
-			input: "processed_data.csv",
 			disease_col: "",
 			case_value: "1",
 		},
