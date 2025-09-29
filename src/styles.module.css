@@ -22,10 +22,11 @@
 }
 
 .headerTitle {
-	font-size: 1.4rem;
+	/* font-size: 1.4rem;
 	font-weight: 600;
 	margin: 0;
-	color: #333;
+	color: #333; */
+	height: 50px;
 }
 
 .headerPlaceholder {
