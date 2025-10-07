@@ -1,6 +1,8 @@
-import { Handle } from "reactflow";
+import { Handle } from "@xyflow/react";
 import { useState } from "react";
 import styles from "./styles.module.css";
+import { DynamicIcon } from "lucide-react/dynamic";
+
 
 const CustomNode = ({ data }) => {
 	const [showTooltip, setShowTooltip] = useState(false);
@@ -17,7 +19,7 @@ const CustomNode = ({ data }) => {
 
 	return (
 		<div className={styles.nodeContainer} style={{ backgroundColor }}>
-			<Handle type="target" position="left" className={styles.handle} />
+			<Handle type="target" position="left" className="scale-150" />
 
 			{/* Info button */}
 			<div 
@@ -45,11 +47,12 @@ const CustomNode = ({ data }) => {
 
 			{/* Node content */}
 			<div className={styles.nodeContent}>
-				<span className={styles.icon}>{data.icon}</span>
+				<span className={styles.icon}>
+					<DynamicIcon name={data.icon} size={20}/>
+				</span>
 				<span className={styles.nodeLabel}>{data.label}</span>
 			</div>
-
-			<Handle type="source" position="right" className={styles.handle} />
+			<Handle type="source" position="right" className="scale-150" />
 		</div>
 	);
 };
