@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-api
+  namespace: icmr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medical-api
+  template:
+    metadata:
+      labels:
+        app: medical-api
+    spec:
+      containers:
+      - name: medical-api
+        image: medical-api:latest
+        imagePullPolicy: Never  # Use local image in Minikube
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MINIO_ENDPOINT
+          value: "minio:9000"
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+        - name: MINIO_SECURE
+          value: "false"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-api
+  namespace: icmr
+spec:
+  type: NodePort
+  selector:
+    app: medical-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30800  # Access via <minikube-ip>:30800
+    protocol: TCP

@@ -126,7 +126,6 @@ export const nodeTemplates = [
 		type: "mean",
 		description: "The average of an attribute or a column in a  dataset.",
 		params: {
-			file: "processed_data.csv",
 			column: "",
 		},
 	},
@@ -185,9 +184,9 @@ export const nodeTemplates = [
 		type: "symptom-pattern",
 		description: "analyzes data to discover frequent co-occurrences and association rules (like 'if fever then headache') using statistical pattern mining with configurable support, confidence, and lift thresholds.",
 		params: {
-			min_support: "0.1",
-			min_confidence: "0.7",
-			min_lift: "1.2",
+			min_prevalence: "0.5",
+			min_co_occurrence: "3",
+			max_pattern_size : "3",
 			exclude_cols: ""
 		},
 	},

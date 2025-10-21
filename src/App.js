@@ -9,6 +9,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import CustomNode from "./components/CustomNode";
+import React from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { IcmrArgoClient } from "./utils/IcmrArgoClient";
@@ -27,6 +28,7 @@ import DebugConsole from "./components/DebugConsole";
 import ParameterSidebar from "./components/ParameterSidebar";
 import ConfigModal from "./components/ConfigModal";
 import SidebarButtons from "./components/SidebarButtons";
+import { ResultsApiClient, parseCsv } from "./utils/ResultsApiClient";
 
 const nodeTypes = {
 	custom: CustomNode,
@@ -62,6 +64,7 @@ function App() {
 	const [debugLogs, setDebugLogs] = useState([]);
 	const [showDebugConsole, setShowDebugConsole] = useState(false);
 	const [workflowStatus, setWorkflowStatus] = useState(null);
+	const [activeOutput, setActiveOutput] = useState(null);
 	const [argoConfig, setArgoConfig] = useState({
 		url: env.argoUrl,
 		token: env.argoToken,
@@ -419,6 +422,7 @@ function App() {
 						"Workflow completed successfully!",
 					]);
 					toast.success("Workflow succeeded!");
+					await fetchAndAttachNodeOutputs();
 					return;
 				}
 
@@ -474,6 +478,50 @@ function App() {
 		return nodes.find((n) => n.id === selectedNode.id) || null;
 	};
 
+	async function fetchAndAttachNodeOutputs() {
+		const client = new ResultsApiClient();
+		const updates = await Promise.all(
+			nodes.map(async (n) => {
+				const op = (n.data?.label || "").toString().toLowerCase();
+				if (!op) return { id: n.id, outputs: [] };
+				try {
+					const listing = await client.list(op);
+					const files = listing.files || [];
+					const outputs = [];
+					for (const f of files) {
+						if (f.type === "csv" || f.type === "html") {
+							const content = await client.fetchFile(op, f.type);
+							outputs.push({ type: f.type, content });
+						}
+					}
+					return { id: n.id, outputs };
+				} catch (e) {
+					return { id: n.id, outputs: [] };
+				}
+			})
+		);
+
+		setNodes((nds) =>
+			nds.map((n) => {
+				const upd = updates.find((u) => u.id === n.id);
+				if (!upd) return n;
+				return {
+					...n,
+					data: {
+						...n.data,
+						outputs: upd.outputs,
+						onOpenOutput: (item) => {
+							setActiveOutput({ nodeId: n.id, outputs: upd.outputs, initial: item });
+						},
+						onOpenAllOutputs: () => {
+							setActiveOutput({ nodeId: n.id, outputs: upd.outputs });
+						},
+					},
+				};
+			})
+		);
+	}
+
 	return (
 		<div className={styles.appContainer}>
 			<ToastContainer position="top-right" autoClose={3000} />
@@ -487,10 +535,6 @@ function App() {
 						src="/adarv-logo.png"
 						alt="adarv-logo"
 					></img>
-					{/* </h1> */}
-					<h1 className={styles.headerTitle}>
-						Workflow Designer
-					</h1>
 				</div>
 				<div className={styles.headerPlaceholder}>
 					<HeaderActionButton
@@ -617,6 +661,28 @@ function App() {
 				/>
 			)}
 
+			{activeOutput && (
+				<div className={styles.outputModalBackdrop} onClick={() => setActiveOutput(null)}>
+					<div className={styles.outputModal} onClick={(e) => e.stopPropagation()}>
+						<div className={styles.outputModalHeader}>
+							<div>Outputs</div>
+							<button onClick={() => setActiveOutput(null)} className={styles.outputCloseBtn}>×</button>
+						</div>
+						<div className={styles.outputModalBody}>
+							{(activeOutput.initial ? [activeOutput.initial] : activeOutput.outputs).map((out, idx) => (
+								<div key={idx} className={styles.outputSection}>
+									{out.type === "csv" ? (
+										<CsvPreview text={out.content} />
+									) : (
+										<HtmlPreview html={out.content} />
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Config Modal */}
 			{showConfigModal && (
 				<ConfigModal
@@ -628,6 +694,46 @@ function App() {
 			)}
 		</div>
 	);
+}
+
+function CsvPreview({ text, maxRows }) {
+    const rows = parseCsv(text);
+    if (!rows.length) return <div>No data</div>;
+    const header = rows[0];
+    const data = typeof maxRows === "number" ? rows.slice(1, 1 + maxRows) : rows.slice(1);
+    return (
+        <div style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                    <tr>
+                        {header.map((h, i) => (
+                            <th key={i} style={{ position: "sticky", top: 0, background: "#fafafa", textAlign: "left", borderBottom: "1px solid #eee", padding: "6px 8px" }}>{h}</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((r, ri) => (
+                        <tr key={ri}>
+                            {header.map((_, ci) => (
+                                <td key={ci} style={{ borderBottom: "1px solid #f3f3f3", padding: "6px 8px", whiteSpace: "nowrap" }}>{r[ci]}</td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+function HtmlPreview({ html, height = 500 }) {
+    return (
+        <iframe
+            title="output-plot"
+            style={{ width: "100%", height, border: "1px solid #eee", borderRadius: 8 }}
+            sandbox="allow-scripts allow-same-origin"
+            srcDoc={html}
+        />
+    );
 }
 
 export default App;

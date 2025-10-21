@@ -44,6 +44,24 @@
 	position: relative;
 }
 
+.outputBadgesContainer {
+	position: absolute;
+	bottom: -12px;
+	right: 8px;
+	display: flex;
+	gap: 6px;
+}
+
+.outputBadge, .outputBadgeMore {
+	background: #fff;
+	border: 1px solid rgba(0,0,0,0.1);
+	box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+	border-radius: 6px;
+	padding: 2px 6px;
+	font-size: 11px;
+	cursor: pointer;
+}
+
 .icon {
 	margin-right: 10px;
 	font-size: 18px;
