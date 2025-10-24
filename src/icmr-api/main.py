@@ -12,8 +12,6 @@ app = FastAPI(
     description="API to retrieve operation outputs from MinIO",
     version="1.0.0"
 )
-
-# CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
@@ -51,17 +49,7 @@ async def get_operation_file(
     operation_name: str,
     file_type: str = Query(..., regex="^(csv|html|png|json)$", description="File type to retrieve")
 ):
-    """
-    Retrieve output files from a specific operation.
-    
-    Parameters:
-    - operation_name: Name of the operation (e.g., 'symptom-pattern', 'mean', 'clustering')
-    - file_type: Type of file to retrieve ('csv', 'html', 'png', 'json')
-    
-    Returns: The requested file as a streaming response
-    """
     try:
-        # Normalize operation name (replace underscores with hyphens)
         operation_folder = operation_name.lower().replace('_', '-')
         
         # List all objects in the operation folder
@@ -84,7 +72,6 @@ async def get_operation_file(
                 detail=f"No {file_type} file found in {operation_folder} folder"
             )
         
-        # Get the file from MinIO
         response = minio_client.get_object(BUCKET_NAME, target_file)
         file_data = response.read()
         response.close()
@@ -125,14 +112,6 @@ async def get_operation_file(
 
 @app.get("/operations/{operation_name}/list")
 async def list_operation_files(operation_name: str):
-    """
-    List all available files for a specific operation.
-    
-    Parameters:
-    - operation_name: Name of the operation
-    
-    Returns: List of available files with their metadata
-    """
     try:
         operation_folder = operation_name.lower().replace('_', '-')
         

@@ -1,14 +1,13 @@
 export const nodeTemplates = [
 	{
-		label: "load-dataset",
+		label: "from-graph",
 		type: "custom",
 		icon: "📊",
 		color: "#E6897E",
-		type: "load-dataset",
+		type: "from-graph",
 		description: "Load a dataset from FHIR server ",
 		params: {
-			base_url: "https://fhir.rs.adarv.in/fhir",
-			dataset_name: "LeptoDemo"
+			base_url: "http://65.0.127.208:30018/fhir"
 		},
 	},
 
@@ -20,6 +19,7 @@ export const nodeTemplates = [
 		type: "correlation",
 		description: "Standardized measure of relationship between two variables, ranges from -1 to +1.",
 		params: {
+			columns: ""
 		},
 	},
 

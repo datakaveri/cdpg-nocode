@@ -36,17 +36,16 @@ const nodeTypes = {
 
 const initialNodes = [
 	{
-		id: "load-dataset-1",
+		id: "from-graph-1",
 		position: { x: 250, y: 100 },
 		data: {
-			label: "load-dataset",
+			label: "from-graph",
 			params: {
-				base_url: "https://fhir.rs.adarv.in/fhir",
-				dataset_name: "LeptoDemo",
+				base_url: "http://65.0.127.208:30018/fhir"
 			},
 			icon: "📥",
 			color: "#E6897E",
-			type: "load-dataset",
+			type: "from-graph",
 			description: "Load a dataset from FHIR server",
 		},
 		type: "custom",
@@ -532,7 +531,7 @@ function App() {
 					{/* <h1  */}
 					<img
 						className={styles.headerTitle}
-						src="/adarv-logo.png"
+						src="/cbr-logo.png"
 						alt="adarv-logo"
 					></img>
 				</div>
@@ -593,7 +592,7 @@ function App() {
 						<h4>Data Upload</h4>
 					</div>
 					{nodeTemplates
-						.filter(template => template.label === "load-dataset")
+						.filter(template => template.label === "from-graph")
 						.map((template, index) => (
 							<SidebarMenuItem key={`upload-${index}`} template={template} />
 						))}

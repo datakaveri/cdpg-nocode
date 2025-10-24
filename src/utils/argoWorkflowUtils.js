@@ -38,7 +38,7 @@ function buildCliArgs(params) {
 }
 
 const nodeTypeToTemplate = {
-	"load-dataset": "download-data",
+	"from-graph": "download-data",
 	correlation: "correlation",
 	condition: "condition",
 	observation: "observation",
