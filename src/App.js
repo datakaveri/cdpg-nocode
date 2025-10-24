@@ -20,6 +20,8 @@ import styles from "./styles.module.css";
 // Icons
 import { BsTerminal } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
+import { FiDownload } from "react-icons/fi";
+import html2canvas from "html2canvas";
 import { nodeTemplates } from "./constants/nodeTemplates";
 import { env } from "./environments/environments";
 import HeaderActionButton from "./components/HeaderActionButton";
@@ -695,43 +697,155 @@ function App() {
 	);
 }
 
+function downloadCsv(csvText, filename = "data.csv") {
+    const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+async function downloadHtmlAsPng(iframeElement, filename = "chart.png") {
+    try {
+        // Create a temporary container to render the iframe content
+        const tempDiv = document.createElement("div");
+        tempDiv.style.position = "absolute";
+        tempDiv.style.left = "-9999px";
+        tempDiv.style.width = iframeElement.offsetWidth + "px";
+        tempDiv.style.height = iframeElement.offsetHeight + "px";
+        tempDiv.innerHTML = iframeElement.srcdoc || iframeElement.contentDocument.documentElement.outerHTML;
+        document.body.appendChild(tempDiv);
+
+        // Wait a bit for any scripts/styles to load
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Capture the content as canvas
+        const canvas = await html2canvas(tempDiv, {
+            backgroundColor: "#ffffff",
+            scale: 2,
+            logging: false,
+            useCORS: true
+        });
+
+        // Remove temporary div
+        document.body.removeChild(tempDiv);
+
+        // Convert canvas to blob and download
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    } catch (error) {
+        console.error("Error downloading HTML as PNG:", error);
+        toast.error("Failed to download image");
+    }
+}
+
 function CsvPreview({ text, maxRows }) {
     const rows = parseCsv(text);
     if (!rows.length) return <div>No data</div>;
     const header = rows[0];
     const data = typeof maxRows === "number" ? rows.slice(1, 1 + maxRows) : rows.slice(1);
+    
     return (
-        <div style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead>
-                    <tr>
-                        {header.map((h, i) => (
-                            <th key={i} style={{ position: "sticky", top: 0, background: "#fafafa", textAlign: "left", borderBottom: "1px solid #eee", padding: "6px 8px" }}>{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((r, ri) => (
-                        <tr key={ri}>
-                            {header.map((_, ci) => (
-                                <td key={ci} style={{ borderBottom: "1px solid #f3f3f3", padding: "6px 8px", whiteSpace: "nowrap" }}>{r[ci]}</td>
+        <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: "#333" }}>CSV Data</span>
+                <button
+                    onClick={() => downloadCsv(text, `output_${Date.now()}.csv`)}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        background: "#4CAF50",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 500
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#45a049"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#4CAF50"}
+                >
+                    <FiDownload size={14} />
+                    Download CSV
+                </button>
+            </div>
+            <div style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                    <thead>
+                        <tr>
+                            {header.map((h, i) => (
+                                <th key={i} style={{ position: "sticky", top: 0, background: "#fafafa", textAlign: "left", borderBottom: "1px solid #eee", padding: "6px 8px" }}>{h}</th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {data.map((r, ri) => (
+                            <tr key={ri}>
+                                {header.map((_, ci) => (
+                                    <td key={ci} style={{ borderBottom: "1px solid #f3f3f3", padding: "6px 8px", whiteSpace: "nowrap" }}>{r[ci]}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
 
 function HtmlPreview({ html, height = 500 }) {
+    const iframeRef = React.useRef(null);
+    
     return (
-        <iframe
-            title="output-plot"
-            style={{ width: "100%", height, border: "1px solid #eee", borderRadius: 8 }}
-            sandbox="allow-scripts allow-same-origin"
-            srcDoc={html}
-        />
+        <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: "#333" }}>Visualization</span>
+                <button
+                    onClick={() => {
+                        if (iframeRef.current) {
+                            downloadHtmlAsPng(iframeRef.current, `chart_${Date.now()}.png`);
+                        }
+                    }}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        background: "#2196F3",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 500
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#0b7dda"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#2196F3"}
+                >
+                    <FiDownload size={14} />
+                    Download PNG
+                </button>
+            </div>
+            <iframe
+                ref={iframeRef}
+                title="output-plot"
+                style={{ width: "100%", height, border: "1px solid #eee", borderRadius: 8 }}
+                sandbox="allow-scripts allow-same-origin"
+                srcDoc={html}
+            />
+        </div>
     );
 }
 
