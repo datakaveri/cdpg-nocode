@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { useState } from "react";
+import { useState , useMemo} from "react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { BaseNodeTemplate } from "../../types/common.type";
 
@@ -10,6 +10,16 @@ type CustomNodeProps = {
 const CustomNode = ({ data }:CustomNodeProps) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const backgroundColor = data.color || "#E6E0F8";
+
+  const hasOutputs = Array.isArray(data.outputs) && data.outputs.length > 0;
+  const condensedItems = useMemo(() => {
+    if (!hasOutputs) return [];
+    return data.outputs!.slice(0, 2).map((out, idx) =>
+      typeof out === "object" && out !== null
+        ? { ...(out as Record<string, any>), key: idx, type: (out as any).type ?? "unknown" }
+        : { value: out, key: idx, type: String(out) }
+    );
+  }, [data.outputs, hasOutputs]);
 
   const handleInfoClick = (e:React.MouseEvent) => {
     e.stopPropagation();
@@ -114,6 +124,38 @@ const CustomNode = ({ data }:CustomNodeProps) => {
         </span>
         <span className="text-[#333] tracking-[0.3px]">{data.label}</span>
       </div>
+
+      {hasOutputs && (
+        <div className="absolute bottom-[-12px] right-2 flex gap-[6px]">
+          {condensedItems.map((out) => (
+            <div
+              key={out.key}
+              title={(out.type).toUpperCase()}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (data.onOpenOutput) data.onOpenOutput(out);
+              }}
+              className="bg-white border border-black/10 shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-md px-[6px] py-[2px] text-[11px] cursor-pointer"
+            >
+              {out.type === "csv" ? "📄" : "📊"}
+            </div>
+          ))}
+
+          {data.outputs!.length > 2 && (
+            <div
+              title={`+${data.outputs!.length - 2} more`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (data.onOpenAllOutputs) data.onOpenAllOutputs();
+              }}
+              className="bg-white border border-black/10 shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-md px-[6px] py-[2px] text-[11px] cursor-pointer"
+            >
+              +{data.outputs!.length - 2}
+            </div>
+          )}
+        </div>
+      )}
+
 
       {/* Right handle */}
       <Handle

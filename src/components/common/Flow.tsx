@@ -11,10 +11,15 @@ import ConfigModal from "../ConfigModal"
 import useNodeManager from "../../hooks/useNodeManager";
 import useWorkflowEngine from "../../hooks/useWorkflowEngine";
 import useArgoConfig from "../../hooks/useArgoConfig";
+import { useState } from "react";
 
 function Flow() {
+
+  const [activeOutput, setActiveOutput] = useState<any | null>(null);
+
   const {
     nodes,
+    setNodes,
     edges,
     onNodesChange,
     onNodeDataChange,
@@ -36,7 +41,8 @@ function Flow() {
     workflowStatus,
     handleDeploy,
     isRunning,
-  } = useWorkflowEngine(nodes, edges);
+    
+  } = useWorkflowEngine(nodes, edges, setNodes, setActiveOutput);
 
   const {
     showConfigModal,
@@ -95,6 +101,34 @@ function Flow() {
           setTempConfig={setTempConfig}
           onSave={handleConfigSave}
         />
+      )}
+      {activeOutput && (
+        <div className="fixed bottom-0 right-0 bg-white shadow-lg border-t w-[600px] h-[400px] overflow-auto z-50">
+          <div className="flex justify-between items-center px-4 py-2 border-b">
+            <h3 className="font-semibold text-sm">
+              Node Output: {activeOutput.nodeId}
+            </h3>
+            <button onClick={() => setActiveOutput(null)}>✖</button>
+          </div>
+
+          <div className="p-4 text-sm">
+            {activeOutput.outputs?.map((op: any, i: number) => (
+              <div key={i} className="mb-4">
+                <p className="font-semibold">{op.type.toUpperCase()}</p>
+                {op.type === "html" ? (
+                  <iframe
+                    srcDoc={op.content}
+                    className="w-full h-60 border rounded"
+                  />
+                ) : (
+                  <pre className="bg-gray-50 border p-2 rounded text-xs overflow-x-auto">
+                    {op.content}
+                  </pre>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

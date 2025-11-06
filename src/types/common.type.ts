@@ -9,6 +9,9 @@ export type BaseNodeTemplate = {
   type: string;
   description: string;
   params?: Record<string, string>;
+  outputs: any[];
+  onOpenOutput: (params: any) => void;
+  onOpenAllOutputs:()=>void
 };
 
 export type CustomNodeData = {
@@ -43,7 +46,7 @@ export type ArgoWorkflowTemplate = {
       secondsAfterFailure?: number;
     };
     templates: ArgoTemplate[];
-    volumes?:Record<string,any>[]
+    volumes?: Record<string, any>[];
   };
 };
 

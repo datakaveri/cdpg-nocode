@@ -185,6 +185,7 @@ export default function useNodeManager() {
 
   return {
     nodes,
+    setNodes,
     edges,
     onNodesChange,
     onNodeDataChange,
