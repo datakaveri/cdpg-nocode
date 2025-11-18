@@ -44,11 +44,11 @@ export const nodeTemplates = [
 		},
 	},
 	{
-		label: "cluster",
+		label: "clustering",
 		type: "custom",
 		icon: "🎯",
 		color: "#E6B87E",
-		type: "cluster",
+		type: "clustering",
 		description: "Grouping patients/data points into clusters based on similarity.",
 		params: {
 			features: "",

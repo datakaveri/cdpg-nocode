@@ -572,7 +572,7 @@ function App() {
 					</div>
 					{nodeTemplates
 						.filter(template => 
-							["correlation", "cluster", "frequency", "range", "std", "mode", "median", "mean", "abbreviate", "join", "symptom-pattern", "covariance", "corr-coefficient", "prevalence"].includes(template.label)
+							["correlation", "clustering", "frequency", "range", "std", "mode", "median", "mean", "abbreviate", "join", "symptom-pattern", "covariance", "corr-coefficient", "prevalence"].includes(template.label)
 						)
 						.map((template, index) => (
 							<SidebarMenuItem key={`analytics-${index}`} template={template} />

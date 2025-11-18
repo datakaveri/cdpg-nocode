@@ -42,7 +42,7 @@ const nodeTypeToTemplate = {
 	correlation: "correlation",
 	condition: "condition",
 	observation: "observation",
-	cluster: "cluster",
+	clustering: "clustering",
 	frequency: "frequency",
 	range: "range",
 	std: "std",

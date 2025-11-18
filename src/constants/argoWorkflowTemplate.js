@@ -114,11 +114,11 @@ export const argoWorkflowTemplate = {
 				},
 			},
 			{
-				name: "cluster",
+				name: "clustering",
 				inputs: { parameters: [] },
 				container: {
 					image: env.sdkImage,
-					command: ["python", "/app/icmr_viz/cli.py", "cluster"],
+					command: ["python", "/app/icmr_viz/cli.py", "clustering"],
 					args: [],
 					resources: {
 						limits: { memory: "2Gi", cpu: "2" },
