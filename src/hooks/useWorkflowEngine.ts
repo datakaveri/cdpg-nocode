@@ -102,11 +102,14 @@ export default function useWorkflowEngine(
       setDebugLogs((p) => [...p, "Testing Argo connection..."]);
       await client.testConnection();
 
-      const workflowName = `icmr-${Date.now()}`;
+      // Generate a workflow name in the format: icmr-icmr-<random>-<random>
+      const randomSuffix1 = Math.random().toString(36).substring(2, 8);
+      const randomSuffix2 = Math.random().toString(36).substring(2, 8);
+      const workflowName = `icmr-icmr-${randomSuffix1}-${randomSuffix2}`;
       if (state === null)
         throw new Error("Handle deploy function state is null");
       const wf = generateArgoWorkflow(workflowName, state);
-      await client.submitWorkflow(wf);
+      await client.submitWorkflow(wf, workflowName);
       toast.success("Workflow submitted");
       await monitor(client, workflowName);
     } catch (err) {
@@ -196,17 +199,29 @@ export default function useWorkflowEngine(
     const timeout = 300000;
     const start = Date.now();
     while (Date.now() - start < timeout) {
-      const status = await client.getStatus(name);
-      const phase = status?.status?.phase || "Unknown";
-      setWorkflowStatus(phase);
-      setDebugLogs((p) => [...p, `Status: ${phase}`]);
-      if (/succeeded/i.test(phase)) {
-        toast.success("Workflow succeeded!");
-        await attachOutputs(); // ✅ Add this call
-        return;
+      try {
+        const status = await client.getStatus(name, 'argo');
+        const phase = status?.status?.phase || "Unknown";
+        setWorkflowStatus(phase);
+        setDebugLogs((p) => [...p, `Status: ${phase}`]);
+        
+        if (/succeeded/i.test(phase)) {
+          toast.success("Workflow succeeded!");
+          await attachOutputs();
+          return;
+        }
+        if (/failed/i.test(phase)) throw new Error("Workflow failed");
+        
+        await sleep(5000);
+      } catch (error) {
+        console.error('Error checking workflow status:', error);
+        setDebugLogs(prev => [
+  ...prev,
+  `Error checking status: ${error instanceof Error ? error.message : String(error)}`
+]);
+
+        await sleep(5000); 
       }
-      if (/failed/i.test(phase)) throw new Error("Workflow failed");
-      await sleep(5000);
     }
     throw new Error("Monitoring timed out");
   };

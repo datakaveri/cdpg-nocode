@@ -56,8 +56,17 @@ export class IcmrArgoClient {
     return this._makeRequest("/api/v1/info");
   }
 
-  public async submitWorkflow(workflow: Record<string, any>): Promise<ArgoWorkflowResponse> {
-    const payload = { workflow };
+  public async submitWorkflow(workflow: Record<string, any>, workflowName?: string): Promise<ArgoWorkflowResponse> {
+    
+    const workflowToSubmit = JSON.parse(JSON.stringify(workflow));
+    
+    if (workflowName) {
+      workflowToSubmit.metadata = workflowToSubmit.metadata || {};
+      workflowToSubmit.metadata.name = workflowName;
+      workflowToSubmit.metadata.generateName = undefined; 
+    }
+
+    const payload = { workflow: workflowToSubmit };
 
     try {
       console.log("Submitting workflow:", JSON.stringify(payload, null, 2));
@@ -95,14 +104,14 @@ export class IcmrArgoClient {
     }
   }
 
-  public async getStatus(workflowName: string): Promise<ArgoWorkflowResponse> {
+  public async getStatus(workflowName: string, namespace: string = 'argo'): Promise<ArgoWorkflowResponse> {
     try {
       const res = await this._makeRequest<ArgoWorkflowResponse>(
-        `/api/v1/workflows/argo/${encodeURIComponent(workflowName)}`
+        `/api/v1/workflows/${namespace}/${encodeURIComponent(workflowName)}`
       );
       return res;
     } catch (error: any) {
-      console.error(`Failed to get status for workflow ${workflowName}:`, error);
+      console.error(`Failed to get status for workflow ${workflowName} in namespace ${namespace}:`, error);
       throw error;
     }
   }

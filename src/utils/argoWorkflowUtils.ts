@@ -219,7 +219,7 @@ export function generateArgoWorkflow(
 
   workflow.spec.templates = newTemplates;
 
-  workflow.metadata.generateName = `icmr-${sanitizedName}-`;
+  workflow.metadata.generateName = `${sanitizedName}-`;
   workflow.metadata.labels!["workflow-name"] = sanitizedName;
 
   return workflow;
