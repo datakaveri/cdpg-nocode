@@ -218,4 +218,15 @@ export const nodeTemplates: BaseNodeTemplate[] = [
       case_value: "1",
     },
   },
+  {
+  label: "descriptive-statistics",
+  icon: "chart-no-axes-column",
+  color: "#9B59B6",
+  type: "descriptive-statistics",
+  description:
+    "Calculate comprehensive descriptive statistics including mean, median, mode, standard deviation, variance, quartiles, and IQR for numeric columns.",
+  params: {
+    column: "",
+  },
+}
 ];

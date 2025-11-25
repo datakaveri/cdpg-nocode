@@ -361,6 +361,25 @@ export const argoWorkflowTemplate: ArgoWorkflowTemplate = {
         name: "main-dag",
         dag: { tasks: [] },
       },
+      {
+        name: "descriptive-statistics",
+        inputs: { parameters: [] },
+        container: {
+          image: env.sdkImage,
+          command: ["python", "/app/icmr_viz/cli.py", "descriptive-statistics"],
+          args: [],
+          resources: {
+            limits: { memory: "2Gi", cpu: "2" },
+            requests: { memory: "1Gi", cpu: "1" },
+          },
+          env: [
+            {
+              name: "PYTHONUNBUFFERED",
+              value: "1",
+            },
+          ],
+        },
+      }
     ],
   },
 };
