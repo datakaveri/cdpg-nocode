@@ -112,26 +112,73 @@ function Flow() {
           </div>
 
           <div className="p-4 text-sm">
-            {activeOutput.outputs?.map((op: any, i: number) => (
-              <div key={i} className="mb-4">
-                <p className="font-semibold">{op.type.toUpperCase()}</p>
-                {op.type === "html" ? (
-                  <iframe
-                    srcDoc={op.content}
-                    className="w-full h-60 border rounded"
-                  />
-                ) : (
-                  <pre className="bg-gray-50 border p-2 rounded text-xs overflow-x-auto">
-                    {op.content}
-                  </pre>
-                )}
+            {activeOutput && (
+              <div className={styles.outputModalBackdrop} onClick={() => setActiveOutput(null)}>
+                <div className={styles.outputModal} onClick={(e) => e.stopPropagation()}>
+                  <div>
+                    <div>Outputs</div>
+                    <button onClick={() => setActiveOutput(null)}>×</button>
+                  </div>
+                  <div>
+                    {(activeOutput.initial ? [activeOutput.initial] : activeOutput.outputs).map((out, idx) => (
+                      <div key={idx}>
+                        {out.type === "csv" ? (
+                          <CsvPreview text={out.content} />
+                        ) : (
+                          <HtmlPreview html={out.content} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
     </div>
   );
 }
+
+function CsvPreview({ text, maxRows }) {
+  const rows = parseCsv(text);
+  if (!rows.length) return <div>No data</div>;
+  const header = rows[0];
+  const data = typeof maxRows === "number" ? rows.slice(1, 1 + maxRows) : rows.slice(1);
+  return (
+    <div style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+        <thead>
+          <tr>
+            {header.map((h, i) => (
+              <th key={i} style={{ position: "sticky", top: 0, background: "#fafafa", textAlign: "left", borderBottom: "1px solid #eee", padding: "6px 8px" }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((r, ri) => (
+            <tr key={ri}>
+              {header.map((_, ci) => (
+                <td key={ci} style={{ borderBottom: "1px solid #f3f3f3", padding: "6px 8px", whiteSpace: "nowrap" }}>{r[ci]}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function HtmlPreview({ html, height = 500 }) {
+  return (
+    <iframe
+      title="output-plot"
+      style={{ width: "100%", height, border: "1px solid #eee", borderRadius: 8 }}
+      sandbox="allow-scripts allow-same-origin"
+      srcDoc={html}
+    />
+  );
+}
+
 
 export default Flow;
