@@ -12,6 +12,7 @@ import useNodeManager from "../../hooks/useNodeManager";
 import useWorkflowEngine from "../../hooks/useWorkflowEngine";
 import useArgoConfig from "../../hooks/useArgoConfig";
 import { useState } from "react";
+import { parseCsv } from "../../utils/ResultsApiClient";
 
 function Flow() {
 
@@ -113,8 +114,8 @@ function Flow() {
 
           <div className="p-4 text-sm">
             {activeOutput && (
-              <div className={styles.outputModalBackdrop} onClick={() => setActiveOutput(null)}>
-                <div className={styles.outputModal} onClick={(e) => e.stopPropagation()}>
+              <div onClick={() => setActiveOutput(null)}>
+                <div  onClick={(e) => e.stopPropagation()}>
                   <div>
                     <div>Outputs</div>
                     <button onClick={() => setActiveOutput(null)}>×</button>
