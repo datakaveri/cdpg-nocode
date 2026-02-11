@@ -1,22 +1,25 @@
 import { FaTimes } from "react-icons/fa";
 import { CustomNodeData } from "../../types/common.type";
 import { Node } from "@xyflow/react";
+import { DynamicIcon } from "lucide-react/dynamic";
 
 const ParameterSidebar = ({
   selectedNode,
   closeSidebar,
   onNodeDataChange,
 }: {
-    selectedNode: CustomNodeData,
-  closeSidebar: () => void,
-  onNodeDataChange: (id: string, update: any) => void,
+  selectedNode: CustomNodeData;
+  closeSidebar: () => void;
+  onNodeDataChange: (id: string, update: any) => void;
 }) => {
   return (
     <div className="fixed top-20 right-0 w-90 h-[calc(100vh-80px)] bg-white shadow-md p-5 overflow-y-auto z-50 transition-transform duration-300">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h3 className="flex items-center text-lg font-semibold text-gray-800">
-          <span className="mr-2">{selectedNode.data.icon}</span>
+          <span className="mr-2">
+            <DynamicIcon name={selectedNode.data.icon} />
+          </span>
           {selectedNode.data.label}
         </h3>
         <button
@@ -53,7 +56,7 @@ const ParameterSidebar = ({
               <input
                 id={`param-${key}`}
                 type="text"
-                value={value as string || ""}
+                value={(value as string) || ""}
                 onChange={(e) => {
                   const newParams = {
                     ...selectedNode.data.params,
