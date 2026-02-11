@@ -5,8 +5,8 @@ import Sidebar from "./Sidebar";
 import FlowCanvas from "./FlowCanvas";
 
 import ParameterSidebar from "../ParameterSidebar";
-import DebugConsole from "../DebugConsole"
-import ConfigModal from "../ConfigModal"
+import DebugConsole from "../DebugConsole";
+import ConfigModal from "../ConfigModal";
 
 import useNodeManager from "../../hooks/useNodeManager";
 import useWorkflowEngine from "../../hooks/useWorkflowEngine";
@@ -15,7 +15,6 @@ import { useState } from "react";
 import { parseCsv } from "../../utils/ResultsApiClient";
 
 function Flow() {
-
   const [activeOutput, setActiveOutput] = useState<any | null>(null);
 
   const {
@@ -42,7 +41,6 @@ function Flow() {
     workflowStatus,
     handleDeploy,
     isRunning,
-    
   } = useWorkflowEngine(nodes, edges, setNodes, setActiveOutput);
 
   const {
@@ -115,21 +113,26 @@ function Flow() {
           <div className="p-4 text-sm">
             {activeOutput && (
               <div onClick={() => setActiveOutput(null)}>
-                <div  onClick={(e) => e.stopPropagation()}>
+                <div onClick={(e) => e.stopPropagation()}>
                   <div>
                     <div>Outputs</div>
                     <button onClick={() => setActiveOutput(null)}>×</button>
                   </div>
                   <div>
-                    {(activeOutput.initial ? [activeOutput.initial] : activeOutput.outputs).map((out, idx) => (
-                      <div key={idx}>
-                        {out.type === "csv" ? (
-                          <CsvPreview text={out.content} />
-                        ) : (
-                          <HtmlPreview html={out.content} />
-                        )}
-                      </div>
-                    ))}
+                    {(activeOutput.initial
+                      ? [activeOutput.initial]
+                      : activeOutput.outputs
+                    ).map(
+                      (out: { type: string; content: string }, idx: number) => (
+                        <div key={idx}>
+                          {out.type === "csv" ? (
+                            <CsvPreview maxRows={10} text={out.content} />
+                          ) : (
+                            <HtmlPreview html={out.content} height={500} />
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               </div>
@@ -141,18 +144,35 @@ function Flow() {
   );
 }
 
-function CsvPreview({ text, maxRows }) {
+function CsvPreview({ text, maxRows }: { text: string; maxRows: number }) {
   const rows = parseCsv(text);
   if (!rows.length) return <div>No data</div>;
   const header = rows[0];
-  const data = typeof maxRows === "number" ? rows.slice(1, 1 + maxRows) : rows.slice(1);
+  const data =
+    typeof maxRows === "number" ? rows.slice(1, 1 + maxRows) : rows.slice(1);
   return (
-    <div style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+    <div
+      style={{ overflow: "auto", border: "1px solid #eee", borderRadius: 8 }}
+    >
+      <table
+        style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}
+      >
         <thead>
           <tr>
             {header.map((h, i) => (
-              <th key={i} style={{ position: "sticky", top: 0, background: "#fafafa", textAlign: "left", borderBottom: "1px solid #eee", padding: "6px 8px" }}>{h}</th>
+              <th
+                key={i}
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  background: "#fafafa",
+                  textAlign: "left",
+                  borderBottom: "1px solid #eee",
+                  padding: "6px 8px",
+                }}
+              >
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
@@ -160,7 +180,16 @@ function CsvPreview({ text, maxRows }) {
           {data.map((r, ri) => (
             <tr key={ri}>
               {header.map((_, ci) => (
-                <td key={ci} style={{ borderBottom: "1px solid #f3f3f3", padding: "6px 8px", whiteSpace: "nowrap" }}>{r[ci]}</td>
+                <td
+                  key={ci}
+                  style={{
+                    borderBottom: "1px solid #f3f3f3",
+                    padding: "6px 8px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {r[ci]}
+                </td>
               ))}
             </tr>
           ))}
@@ -170,16 +199,20 @@ function CsvPreview({ text, maxRows }) {
   );
 }
 
-function HtmlPreview({ html, height = 500 }) {
+function HtmlPreview({ html, height = 500 }: { html: string; height: number }) {
   return (
     <iframe
       title="output-plot"
-      style={{ width: "100%", height, border: "1px solid #eee", borderRadius: 8 }}
+      style={{
+        width: "100%",
+        height,
+        border: "1px solid #eee",
+        borderRadius: 8,
+      }}
       sandbox="allow-scripts allow-same-origin"
       srcDoc={html}
     />
   );
 }
-
 
 export default Flow;
