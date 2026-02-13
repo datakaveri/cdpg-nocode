@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
   useNodesState,
   useEdgesState,
@@ -11,7 +11,7 @@ import {
 } from "@xyflow/react";
 import { toast } from "react-toastify";
 import CustomNode from "../components/CustomNode";
-import {BaseNodeTemplate, CustomNodeData} from "../types/common.type"
+import { BaseNodeTemplate, CustomNodeData } from "../types/common.type";
 
 /* --------------------------------------------
  * Types
@@ -22,8 +22,6 @@ export interface NodeParams {
   dataset_name?: string;
   [key: string]: string | undefined; // allow dynamic params for flexibility
 }
-
-
 
 /* --------------------------------------------
  * Initial Data
@@ -57,20 +55,19 @@ const initialEdges: Edge[] = [];
  * ------------------------------------------*/
 
 export default function useNodeManager() {
-  const [nodes, setNodes, onNodesChange] =
-    useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<CustomNodeData | null>(
-    null
-  );
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const { screenToFlowPosition } = useReactFlow();
 
-  useEffect(() => {
-    if (selectedNode && !nodes.find((n) => n.id === selectedNode.id)) {
-      setSelectedNode(null);
-    }
-  }, [nodes, selectedNode]);
+  const selectedNode = useMemo(
+    () =>
+      selectedNodeId
+        ? (nodes.find((n) => n.id === selectedNodeId) as CustomNodeData) || null
+        : null,
+    [nodes, selectedNodeId],
+  );
 
   /* --------------------------------------------
    * Helpers
@@ -109,7 +106,7 @@ export default function useNodeManager() {
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes, screenToFlowPosition]
+    [setNodes, screenToFlowPosition],
   );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -128,27 +125,32 @@ export default function useNodeManager() {
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges]
+    [setEdges],
   );
 
+  const setSelectedNode = useCallback((node: CustomNodeData | null) => {
+    setSelectedNodeId(node?.id || null);
+  }, []);
+
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNode(node as CustomNodeData);
+    setSelectedNodeId(node.id);
   }, []);
 
   const deleteNode = useCallback(
     (id: string) => {
       setNodes((nds) => nds.filter((n) => n.id !== id));
       setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-      if (selectedNode?.id === id) setSelectedNode(null);
+      if (selectedNodeId === id) setSelectedNodeId(null);
       toast.info("Node deleted");
     },
-    [selectedNode]
+    [selectedNodeId],
   );
 
   const clearCanvas = useCallback(() => {
     if (window.confirm("Clear the canvas? All nodes will be lost.")) {
       setNodes([]);
       setEdges([]);
+      setSelectedNodeId(null);
       toast.info("Canvas cleared");
     }
   }, [setNodes, setEdges]);
@@ -173,10 +175,10 @@ export default function useNodeManager() {
           }
           // Merge other fields
           return { ...node, data: { ...node.data, ...newData } };
-        })
+        }),
       );
     },
-    [setNodes]
+    [setNodes],
   );
 
   /* --------------------------------------------
